@@ -1,8 +1,8 @@
 import psycopg2
+import psycopg2.extras
 
-from BDD.Database import Database
 import BDD.BDD_PSQL.PsqlParsers as PsqlParsers
-
+from BDD.Database import Database
 from Utils.Types import sql_json_format
 
 
@@ -22,7 +22,7 @@ class PsqlDatabase(Database):
         :param password:
         """
         self.sql_connection = psycopg2.connect(database=database, host=url, user=user, password=password, port=port)
-        self.sql_cursor = self.sql_connection.cursor()
+        self.sql_cursor = self.sql_connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     def __del__(self) -> None:
         """
@@ -34,16 +34,27 @@ class PsqlDatabase(Database):
         # self.sql_connection.close()
         # del self.sql_connection
 
-    def su(self, query):
-        self.sql_cursor.execute(query)
-        return self.sql_cursor.fetchall()
-
-    def query(self, request: sql_json_format) -> list:
+    def query(self, request: sql_json_format) -> list[dict[str, str]]:
+        """
+        Execute une requête (de lecture) sur la base de donnée et renvoie une liste de dictionnaires
+        Associant pour chaque ligne le nom de la colonne à la valeur
+        :param request:
+        :return:
+        """
         sql_request = PsqlParsers.jsonToPsqlQuery(request)
         self.sql_cursor.execute(sql_request)
-        return self.sql_cursor.fetchall()
+        query_result = self.sql_cursor.fetchall()
+
+        parsed_query_response = [{column_name: row[column_name] for column_name in row} for row in query_result]
+
+        return parsed_query_response
 
     def execute(self, request: sql_json_format) -> list:
+        """
+        Execute une requête (d'écriture) sur la base de donnée et renvoie une confirmation
+        :param request:
+        :return:
+        """
         # TODO: Ajout de vérification au préalable
         sql_request = PsqlParsers.jsonToPsqlQuery(request)
         return self.sql_cursor.execute(sql_request)

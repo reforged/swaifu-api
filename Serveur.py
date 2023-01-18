@@ -1,4 +1,5 @@
 import flask
+from flask import request
 import os
 from Utils.Dotenv import getenv
 
@@ -34,12 +35,17 @@ password_request = {
 }
 
 # print(Db.su("select * from information_schema.tables"))
-res = Db.query(password_request)[0]
+# res = Db.query(password_request)[0]
 
-print(res[0])
-print(res[1])
+# print(res[0])
+# print(res[1])
 
+param = {
+    "database": Db,
+    "request": request,
+    "chiffre": 5
+}
 
-# RoutesImporter.import_route("Routes", os.path.dirname(__file__), "/", App, os.path.basename(__file__))
+RoutesImporter.import_route(os.path.dirname(__file__), "Routes", "/", App, param, os.path.basename(__file__))
 
-# App.run()
+App.run()

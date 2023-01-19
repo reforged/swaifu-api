@@ -11,10 +11,9 @@ from Utils.Route import route
 from Permissions.Policies import middleware
 
 
+# @middleware(["post:etiquette", "post:question"])
 @route("POST", "/login")
-@middleware(["post:etiquette", "post:question"])
 def login(database: Database, request: Request) -> dict[str, str | dict[str, str]] | Response:
-    Db = database
     data = request.get_json()
 
     email = data.get("email")
@@ -26,8 +25,7 @@ def login(database: Database, request: Request) -> dict[str, str | dict[str, str
                              {'Authentification': '"Identifiants nécessaires"'}
                              )
 
-    # hashed_password = hashlib.sha256(password.encode()).hexdigest()
-    hashed_password = password
+    hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
     del password
 
@@ -45,10 +43,22 @@ def login(database: Database, request: Request) -> dict[str, str | dict[str, str
         }
     }
 
-    query_result = (Db.query(password_request))[0]
+    query_result = (database.query(password_request))[0]
 
     if hashed_password == query_result["password"]:
         token = jwt.encode({'id': query_result["id"]}, getenv("token_key"), algorithm="HS256")
+
+        insert = {
+            "table": "api_tokens",
+            "action": "insert",
+            "valeurs": [
+                ["token", token],
+                ["user_id", query_result["id"]]
+            ]
+        }
+
+        database.execute(insert)
+        print(database.commit())
 
         return {'token': token, 'user': {
                         'id': query_result["id"],

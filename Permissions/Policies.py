@@ -35,6 +35,9 @@ def check_perm(db: Database, id: str, permissions: list):
 
     print(f"Query res : {permission_labels}")
 
+    if "admin" in permission_labels:
+        return True
+
     for required_permission in permissions:
         if required_permission not in permission_labels:
             return False
@@ -42,7 +45,7 @@ def check_perm(db: Database, id: str, permissions: list):
     return True
 
 
-def check_token(req):
+def check_token(req, db: Database):
     if "Authorization" not in req.headers:
         return None
 
@@ -51,6 +54,22 @@ def check_token(req):
     try:
         decoded_token = jwt.decode(token, getenv("token_key"), algorithms=["HS256"])
     except jwt.InvalidSignatureError or jwt.DecodeError:
+        return None
+
+    query = {
+        "select": [
+            ["api_tokens", "token"]
+        ],
+        "from": {
+            "tables": ["api_tokens"]
+        }
+    }
+
+    query_result = db.query(query)
+
+    print(f"Query result : {query_result}")
+
+    if len(query_result) == 0:
         return None
 
     return decoded_token
@@ -62,14 +81,17 @@ def middleware(policies: list):
             if "Authorization" not in request.headers:
                 return make_response(non_authorise, 401, non_authorise)
 
-            decoded_token = check_token(request)
+            db: Database = kwargs["database"]
+
+            if db is None:
+                raise KeyError("Fonction nécessitant une connection à la BDD sans pouvoir.")
+
+            decoded_token = check_token(request, db)
 
             if decoded_token is None:
                 return make_response(token_invalide, 400, token_invalide)
 
             print(decoded_token)
-
-            db: Database = kwargs["database"]
 
             perm = check_perm(db, decoded_token["id"], policies)
 
@@ -82,8 +104,8 @@ def middleware(policies: list):
 
         inner.info_fonction = {
             "co_argcount": getattr(getattr(fonction, "__code__"), "co_argcount"),
-            "co_varnames": getattr(getattr(fonction, "__code__"), "co_varnames")
-
+            "co_varnames": getattr(getattr(fonction, "__code__"), "co_varnames"),
+            "__module__": getattr(fonction, "__module__")
         }
 
         return inner

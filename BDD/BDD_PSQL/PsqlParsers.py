@@ -1,8 +1,8 @@
-from Utils.Types import sql_json_format
+from Utils.Types import *
 from Erreurs.TablesManquantes import TablesManquantes
 
 
-def jsonToPsqlQuery(request: sql_json_format) -> str:
+def jsonToPsqlQuery(request: sql_query_json_format) -> str:
     """
     Prends en paramètre un dictionnaire structuré (Voir documentation pour la structure) et construit une
     Requête SQL à partir de ce dernier
@@ -46,3 +46,41 @@ def jsonToPsqlQuery(request: sql_json_format) -> str:
 
     return query + ";"
 
+
+def jsonToPsqlExecute(request: sql_execute_json_format) -> str:
+    table = request.get("table", None)
+    valeurs = request.get("valeurs", None)
+    action = request.get("action", "insert")
+    query = ""
+
+    if table is None:
+        raise TablesManquantes("Liste des tables non données")
+
+    if action == "insert":
+        query = f"insert into {table} ("
+
+        for colonne in valeurs:
+            query += f"{colonne[0]}, "
+
+        query = query[:-2] + ") values ("
+
+        for colonne in valeurs:
+            query += f"'{colonne[1]}', "
+
+        query = query[:-2] + ");"
+
+    if action == "delete":
+        query = f"delete from {table}"
+
+        if len(valeurs) > 0:
+            query += " where"
+
+        for colonne in valeurs:
+            query += f" {colonne[0]} = '{colonne[1]}' and"
+
+        if len(valeurs) > 0:
+            query = query[:-4]
+
+        query += ";"
+
+    return query

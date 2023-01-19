@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from Utils.Types import sql_json_format
+from Utils.Types import sql_query_json_format
 
 
 class Database(ABC):
@@ -8,13 +8,13 @@ class Database(ABC):
     Notamment base de donnée MySQL ou un système de fichier
     """
     @abstractmethod
-    def query(self, request: sql_json_format) -> list:
+    def query(self, request: sql_query_json_format) -> list:
         pass
 
     @abstractmethod
-    def execute(self, request: sql_json_format) -> list:
+    def execute(self, request: sql_query_json_format) -> list:
         pass
 
     @abstractmethod
-    def su(self, query):
+    def commit(self):
         pass

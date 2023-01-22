@@ -1,6 +1,6 @@
 from BDD.Database import Database
 import json
-import pprintpp
+
 
 class RequetesFormatTxt(Database):
 
@@ -110,51 +110,3 @@ class RequetesFormatTxt(Database):
         f = open("donnees/"+request["table"]+".json", "w")
         #f.write(json.dumps(self.file))
         f.write(json.dumps(self.file, indent=4))
-    
-
-
-b = {
-	"select" : [
-        ["Ex_Donnee", "name"],
-        ["Ex_Donnee", "email"], 
-        ["Ex_Donnee3", "label"],
-        ["Ex_Donnee2", "id"],
-        ["Ex_Donnee4", "id"]
-    ],
-	"from": {
-		"tables": ["Ex_Donnee", "Ex_Donnee2", "Ex_Donnee3", "Ex_Donnee4"],
-        "cond" : [
-            [
-                ["Ex_Donnee", "id"],
-                ["Ex_Donnee2", "user_id"]
-            ],
-            [
-                ["Ex_Donnee2", "permission_id"],
-                ["Ex_Donnee3", "id"]
-            ],
-            [
-                ["Ex_Donnee2", "id"],
-                ["Ex_Donnee4", "id_autre"]
-            ]
-        ]
-	},
-    "where": [
-        ["Ex_Donnee", "name" , "fabriceleplubo"]
-    ]
-
-}
-
-c = {
-	"table": "Ex_Donnee",
-
-	"valeurs": [
-		["id", "1246"],
-		["email", "encoreunmail@mail.mail"],
-		["name", "Mr.Man"],
-		["password", "thebestmotdepasse"]
-
-	]
-}
-a = RequetesFormatTxt()
-pprintpp.pprint(a.query(b))
-a.execute(c)

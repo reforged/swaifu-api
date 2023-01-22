@@ -6,24 +6,26 @@ from Erreurs.HttpErreurs import requete_malforme, creation_impossible
 import uuid
 import hashlib
 from Utils.Route import route
+import datetime
 from Permissions.Policies import middleware
 
 
+# @middleware(["post:user"])
 @route(method="post")
-@middleware(["post:user"])
 def register(database: Database, request: Request):
     data = request.get_json()
 
-    name = data.get("name", None)
+    firstname = data.get("firstname", None)
+    lastname = data.get("lastname", None)
     email = data.get("email", None)
     password = data.get("password", None)
 
-    if name is None or email is None or password is None:
+    if firstname is None or lastname is None or email is None or password is None:
         return make_response(requete_malforme, 400, requete_malforme)
 
     check_user_query = {
         "where": [
-            ["users", "email", email]
+            ["users", "email", email, "and"]
         ],
         "from": {
             "tables": ["users"]
@@ -41,7 +43,7 @@ def register(database: Database, request: Request):
 
         check_uuid_query = {
             "where": [
-                ["users", "id", user_uuid]
+                ["users", "id", user_uuid, "and"]
             ],
             "from": {
                 "tables": ["users"]
@@ -60,8 +62,11 @@ def register(database: Database, request: Request):
         "valeurs": [
             ["id", user_uuid],
             ["email", email],
-            ["name", name],
-            ["password", hashed_password]
+            ["firstname", firstname],
+            ["lastname", lastname],
+            ["password", hashed_password],
+            ["created_at", str(datetime.datetime.now().astimezone())],
+            ["updated_at", str(datetime.datetime.now().astimezone())]
         ]
     }
 
@@ -75,7 +80,9 @@ def register(database: Database, request: Request):
         "action": "insert",
         "valeurs": [
             ["token", token],
-            ["user_id", user_uuid]
+            ["user_id", user_uuid],
+            # ["expires_at", str(datetime.datetime.now().astimezone())],
+            ["created_at", str(datetime.datetime.now().astimezone())]
         ]
     }
 
@@ -85,6 +92,9 @@ def register(database: Database, request: Request):
     return {'token': token, 'user': {
         'id': user_uuid,
         'email': email,
-        'name': name
+        'firstname': firstname,
+        'lastname': lastname,
+        'created_at': str(datetime.datetime.now().astimezone()),
+        'updated_at': str(datetime.datetime.now().astimezone())
     }
             }

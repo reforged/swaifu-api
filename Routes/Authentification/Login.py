@@ -4,6 +4,7 @@ import jwt
 
 from Utils.Dotenv import getenv
 from flask import Request, make_response, Response
+import Erreurs.HttpErreurs as HttpErreurs
 
 from BDD.Database import Database
 from Utils.Route import route
@@ -30,20 +31,20 @@ def login(database: Database, request: Request) -> dict[str, str | dict[str, str
     del password
 
     password_request = {
-        "select": [
-            ["users", "password"],
-            ["users", "id"],
-            ["users", "name"]
-        ],
         "where": [
-            ["users", "email", email]
+            ["users", "email", email, "and"]
         ],
         "from": {
             "tables": ["users"]
         }
     }
 
-    query_result = (database.query(password_request))[0]
+    query_result = (database.query(password_request))
+
+    if len(query_result) == 0:
+        return make_response(HttpErreurs.token_invalide, 400, HttpErreurs.token_invalide)
+
+    query_result = query_result[0]
 
     if hashed_password == query_result["password"]:
         token = jwt.encode({'id': query_result["id"]}, getenv("token_key"), algorithm="HS256")
@@ -53,7 +54,9 @@ def login(database: Database, request: Request) -> dict[str, str | dict[str, str
             "action": "insert",
             "valeurs": [
                 ["token", token],
-                ["user_id", query_result["id"]]
+                ["user_id", query_result["id"]],
+                # ["expires_at", query_result["id"]],
+                ["created_at", str(datetime.datetime.now().astimezone())]
             ]
         }
 
@@ -63,7 +66,10 @@ def login(database: Database, request: Request) -> dict[str, str | dict[str, str
         return {'token': token, 'user': {
                         'id': query_result["id"],
                         'email': email,
-                        'name': query_result["name"]
+                        'firstname': query_result["firstname"],
+                        'lastname': query_result["lastname"],
+                        'created_at': query_result["created_at"],
+                        'updated_at': query_result["updated_at"]
                     }
                 }
 

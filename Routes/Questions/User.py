@@ -1,11 +1,13 @@
-from BDD.Database import Database
-from Utils.GetEtiquette import *
-
-# TODO: str(datetime.datetime.now().astimezone())
+from Utils.Route import route
+from Utils.GetEtiquette import getEtiquette
 
 
-def questions(database: Database):
+@route(url='user/<user_id>')
+def user(user_id, database):
     sql_question_query = {
+        "where": [
+            ["questions", "user_id", user_id, "and"]
+        ],
         "from": {
             "tables": ["questions"]
         }

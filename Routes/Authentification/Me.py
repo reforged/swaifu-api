@@ -12,12 +12,14 @@ def me(request, database) -> list | Response:
 
     query = {
         "select": [
-            ["users", "name"],
+            ["users", "firstname"],
             ["users", "email"],
-            ["users", "id"]
+            ["users", "lastname"],
+            ["users", "created_at"],
+            ["users", "updated_at"]
         ],
         "where": [
-            ["users", "id", token["id"]]
+            ["users", "id", token["id"], "and"]
         ],
         "from": {
             "tables": ["users"]

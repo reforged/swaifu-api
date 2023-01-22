@@ -1,5 +1,5 @@
 import flask
-from flask import request, send_from_directory
+from flask import request, send_from_directory, make_response
 from flask_cors import CORS
 import os
 from Utils.Dotenv import getenv
@@ -19,13 +19,26 @@ psql_params = {
 }
 
 App = flask.Flask(__name__)
-CORS(App, support_credentials=True, ressources={
-    "*": {
-        "origins": ["*"],
-        "methods": ["OPTIONS", "GET", "POST"],
-        "allow_headers": ["Authorization", "Content-type"]
-    }
-})
+
+
+@App.after_request
+def after_request_func(response):
+    origin = request.headers.get('Origin')
+    if request.method == 'OPTIONS':
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        response.headers.add('Access-Control-Allow-Headers', 'x-csrf-token')
+        response.headers.add('Access-Control-Allow-Methods',
+                             'GET, POST, OPTIONS, PUT, PATCH, DELETE')
+        if origin:
+            response.headers.add('Access-Control-Allow-Origin', origin)
+    else:
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        if origin:
+            response.headers.add('Access-Control-Allow-Origin', origin)
+
+    return response
 
 Db = initiate("psql", psql_params)
 
@@ -54,4 +67,4 @@ def b(name):
     return send_from_directory('Static/assets', name)
 
 
-App.run()
+App.run(port=3333)

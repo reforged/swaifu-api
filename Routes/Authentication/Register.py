@@ -89,7 +89,7 @@ def register(database: Database, request: Request):
     database.execute(insert)
     print(database.commit())
 
-    return {'token': token, 'user': {
+    return {'token':  "Bearer " + token, 'user': {
         'id': user_uuid,
         'email': email,
         'firstname': firstname,

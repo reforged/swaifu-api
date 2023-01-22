@@ -18,7 +18,7 @@ def logout(database, request):
         "table": "api_tokens",
         "action": "delete",
         "valeurs": [
-            ["token", token]
+            ["token",  "Bearer " + token]
         ]
     }
 

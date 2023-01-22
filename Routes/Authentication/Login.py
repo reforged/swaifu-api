@@ -63,7 +63,17 @@ def login(database: Database, request: Request) -> dict[str, str | dict[str, str
         database.execute(insert)
         database.commit()
 
-        return {'token': token, 'user': {
+        print({'token': "Bearer " + token, 'user': {
+                        'id': query_result["id"],
+                        'email': email,
+                        'firstname': query_result["firstname"],
+                        'lastname': query_result["lastname"],
+                        'created_at': query_result["created_at"],
+                        'updated_at': query_result["updated_at"]
+                    }
+                })
+
+        return {'token': "Bearer " + token, 'user': {
                         'id': query_result["id"],
                         'email': email,
                         'firstname': query_result["firstname"],

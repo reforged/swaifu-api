@@ -2,6 +2,7 @@ from flask import request, make_response
 from Erreurs.HttpErreurs import *
 from BDD.Database import Database
 from Utils.Dotenv import getenv
+from datetime import datetime
 from BDD.BDD_PSQL.PsqlParsers import jsonToPsqlQuery
 import jwt
 
@@ -53,7 +54,7 @@ def check_token(req, db: Database):
 
     try:
         decoded_token = jwt.decode(token, getenv("token_key"), algorithms=["HS256"])
-    except jwt.InvalidSignatureError or jwt.DecodeError:
+    except:
         return None
 
     query = {
@@ -65,13 +66,15 @@ def check_token(req, db: Database):
         }
     }
 
-    # TODO: Check token hasn't expired
-
     query_result = db.query(query)
 
-    print(f"Query result : {query_result}")
-
     if len(query_result) == 0:
+        return None
+
+    expires_at = query_result[0]
+    expires_at_datetime = datetime.strptime(expires_at + "00", "%Y-%m-%d %H:%M:%S.%f+0100")
+
+    if expires_at_datetime < datetime.now():
         return None
 
     return decoded_token

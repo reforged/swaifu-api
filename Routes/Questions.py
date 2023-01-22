@@ -1,8 +1,6 @@
 from BDD.Database import Database
 from Utils.GetEtiquette import *
 
-# TODO: str(datetime.datetime.now().astimezone())
-
 
 def questions(database: Database):
     sql_question_query = {

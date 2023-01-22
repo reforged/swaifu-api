@@ -81,7 +81,7 @@ def register(database: Database, request: Request):
         "valeurs": [
             ["token", token],
             ["user_id", user_uuid],
-            # ["expires_at", str(datetime.datetime.now().astimezone())],
+            ["expires_at", str((datetime.datetime.now() + datetime.timedelta(hours=24)).astimezone())],
             ["created_at", str(datetime.datetime.now().astimezone())]
         ]
     }

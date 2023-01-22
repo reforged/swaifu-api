@@ -13,7 +13,7 @@ from Permissions.Policies import middleware
 
 
 # @middleware(["post:etiquette", "post:question"])
-@route("POST", "/login")
+@route("POST")
 def login(database: Database, request: Request) -> dict[str, str | dict[str, str]] | Response:
     data = request.get_json()
 
@@ -23,7 +23,7 @@ def login(database: Database, request: Request) -> dict[str, str | dict[str, str
     if email is None or password is None:
         return make_response("Email ou Mot de Passe manquant",
                              400,
-                             {'Authentification': '"Identifiants nécessaires"'}
+                             {'Authentication': '"Identifiants nécessaires"'}
                              )
 
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
@@ -55,13 +55,13 @@ def login(database: Database, request: Request) -> dict[str, str | dict[str, str
             "valeurs": [
                 ["token", token],
                 ["user_id", query_result["id"]],
-                # ["expires_at", query_result["id"]],
+                ["expires_at", str((datetime.datetime.now() + datetime.timedelta(hours=24)).astimezone())],
                 ["created_at", str(datetime.datetime.now().astimezone())]
             ]
         }
 
         database.execute(insert)
-        print(database.commit())
+        database.commit()
 
         return {'token': token, 'user': {
                         'id': query_result["id"],
@@ -75,5 +75,5 @@ def login(database: Database, request: Request) -> dict[str, str | dict[str, str
 
     return make_response("Nom d'utilisateur ou mot de passe incorrect",
                          401,
-                         {'Authentification': '"Authentification requise"'}
+                         {'Authentication': '"Authentication requise"'}
                          )

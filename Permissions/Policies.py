@@ -9,10 +9,10 @@ import jwt
 def check_perm(db: Database, id: str, permissions: list):
     query = {
         "select": [
-            ["permissions", "label"]
+            ["permissions", "key"]
         ],
         "where": [
-            ["users", "id", id]
+            ["users", "id", id, "and"]
         ],
         "from": {
             "tables": ["users", "permission_user", "permissions"],
@@ -64,6 +64,8 @@ def check_token(req, db: Database):
             "tables": ["api_tokens"]
         }
     }
+
+    # TODO: Check token hasn't expired
 
     query_result = db.query(query)
 

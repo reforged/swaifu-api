@@ -98,6 +98,42 @@ def questions_create(database, request):
         }
 
         database.execute(insert_reponse_query)
+        
+       
+    for etiquette_id in etiquettes:
+        conflict = True
+
+        if body is None or valide is None:
+            return make_response(requete_malforme, 400, requete_malforme)
+
+        while conflict:
+            etiquette_question_id = str(uuid.uuid4())
+
+            verification_query = {
+                "where": [
+                    ["etiquette_question", "id", etiquette_question_id, "and"]
+                ],
+                "from": {
+                    "tables": ["etiquette_question"]
+                }
+            }
+
+            if len(database.query(verification_query)) == 0:
+                conflict = False
+
+        insert_question_etiquette_query = {
+            "table": "etiquette_question",
+            "action": "insert",
+            "valeurs": [
+                ["id", etiquette_question_id],
+                ["etiquette_id", etiquette_id],
+                ["question_id", question_id],
+            ]
+        }
+
+        database.execute(insert_question_etiquette_query)
+        
+        
 
     database.commit()
 

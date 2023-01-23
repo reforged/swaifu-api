@@ -6,6 +6,18 @@ from Utils.GetReponses import getReponses
 @route(url='user/<user_id>')
 def user(user_id, database):
     sql_question_query = {
+        "select": [
+            ["questions", "id"],
+            ["questions", "label"],
+            ["questions", "enonce"],
+            ["questions", "type"],
+            ["questions", "user_id"],
+            ["questions", "updated_at"],
+            ["questions", "created_at"]
+        ],
+        "where": [
+            ["users", "email", user_id, "and"]
+        ],
         "from": {
             "tables": ["questions", "users"],
             "cond": [

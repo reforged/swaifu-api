@@ -2,7 +2,7 @@ from flask import request, make_response
 from Erreurs.HttpErreurs import *
 from BDD.Database import Database
 from Utils.Dotenv import getenv
-from datetime import datetime
+from datetime import datetime, timedelta
 from BDD.BDD_PSQL.PsqlParsers import jsonToPsqlQuery
 import jwt
 
@@ -61,6 +61,9 @@ def check_token(req, db: Database):
         "select": [
             ["api_tokens", "token"]
         ],
+        "where": [
+            ["api_tokens", "token", token, "and"]
+        ],
         "from": {
             "tables": ["api_tokens"]
         }
@@ -71,8 +74,7 @@ def check_token(req, db: Database):
     if len(query_result) == 0:
         return None
 
-    expires_at = query_result[0]
-    expires_at_datetime = datetime.strptime(expires_at + "00", "%Y-%m-%d %H:%M:%S.%f+0100")
+    expires_at_datetime = query_result[0].get("expires_at", datetime.now() + timedelta(seconds=10))
 
     if expires_at_datetime < datetime.now():
         return None

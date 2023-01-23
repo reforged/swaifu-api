@@ -7,7 +7,7 @@ from Utils.GetReponses import getReponses
 def user(user_id, database):
     sql_question_query = {
         "from": {
-            "tables": ["questions", "users"];
+            "tables": ["questions", "users"],
             "cond": [
                 [
                     ["questions", "user_id"],

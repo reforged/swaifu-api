@@ -1,13 +1,11 @@
 from Utils.Route import route
 from Utils.GetEtiquette import getEtiquette
+from Utils.GetReponses import getReponses
 
 
 @route(url='user/<user_id>')
 def user(user_id, database):
     sql_question_query = {
-        "where": [
-            ["questions", "user_id", user_id, "and"]
-        ],
         "from": {
             "tables": ["questions"]
         }
@@ -17,5 +15,6 @@ def user(user_id, database):
 
     for i in range(len(question_query_result)):
         question_query_result[i]["etiquettes"] = getEtiquette(database, question_query_result[i]["id"])
+        question_query_result[i]["reponses"] = getReponses(database, question_query_result[i]['id'])
 
     return question_query_result

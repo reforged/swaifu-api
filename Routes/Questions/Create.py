@@ -16,12 +16,13 @@ def questions_create(database, request):
     data = request.get_json()
 
     label = data.get("label", None)
-    enonce = data.get("body", None)
+    enonce = data.get("enonce", None)
     type = data.get("type", None)
     reponses = data.get("reponses", None)
+    etiquettes= data.get("etiquettes", None)
     user_id = token['id']
 
-    for object in [label, enonce, type, user_id, reponses]:
+    for object in [label, enonce, type, user_id, reponses, etiquettes]:
         if object is None:
             return make_response(requete_malforme, 400, requete_malforme)
 
@@ -57,6 +58,7 @@ def questions_create(database, request):
     }
 
     database.execute(insert_query)
+
 
     for reponse in reponses:
         conflict = True

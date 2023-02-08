@@ -1,20 +1,16 @@
-from BDD.Database import Database
-from Utils.GetEtiquette import *
-from Utils.GetReponses import getReponses
+import BDD.Database as Database
+
+import Utils.EtiquetteHandler as EtiquetteHandler
+import Utils.QuestionHandler as QuestionHandler
+import Utils.ReponseHandler as ReponseHandler
+import Utils.Types as Types
 
 
-def questions(database: Database):
-    sql_question_query = {
-        "from": {
-            "tables": ["questions"]
-        }
-    }
+def questions(database: Database.Database) -> list[Types.dict_ss_imb]:
+    liste_questions = QuestionHandler.getAllQuestions(database)
 
-    question_query_result = database.query(sql_question_query)
+    for question in liste_questions:
+        question["etiquettes"] = EtiquetteHandler.getEtiquettesByQuestionId(database, question['id'])
+        question["reponses"] = ReponseHandler.getReponses(database, question['id'])
 
-
-    for i in range(len(question_query_result)):
-        question_query_result[i]["etiquettes"] = getEtiquette(database, question_query_result[i]["id"])
-        question_query_result[i]["reponses"] = getReponses(database, question_query_result[i]['id'])
-
-    return question_query_result
+    return liste_questions

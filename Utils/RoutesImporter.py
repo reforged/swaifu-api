@@ -1,16 +1,16 @@
 import flask
-import os
-
 import importlib.util
+import os
+import types
+
 from Utils.ObjectInspector import retrieveAttr, checkAttr
 
-import types
 current_dir = None
 ignore_dir = ["__pycache__"]
 ignore_functions = ["main"]
 
 
-def add_attributes(dict_arguments):
+def add_attributes(dict_arguments: dict[str, str]):
     def wrapper(fonction):
         co_varnames = getattr(getattr(fonction, "__code__"), "co_varnames")
 
@@ -37,8 +37,6 @@ def import_route(caller_filename: str, rel_path_to_dir: str, route: str, app: fl
 
     for repertoire in repertoires_repertoire:
         if f"{repertoire}.py" not in fichier_repertoire:
-            # print(f"Nom répertoire : {repertoire}\tChemin relatif : {rel_path_to_dir}/{repertoire}\tRoute : {route}{repertoire}/")
-
             import_route(repertoire, rel_path_to_dir + f"/{repertoire}", f"{route}{repertoire.lower()}/", app, arguments, repertoire)
 
         spec = importlib.util.spec_from_file_location(caller_filename if parent_module is None else parent_module,
@@ -48,8 +46,6 @@ def import_route(caller_filename: str, rel_path_to_dir: str, route: str, app: fl
         spec.loader.exec_module(module)
 
         if not hasattr(module, "main"):
-            # print(f"Nom répertoire : {repertoire}\tChemin relatif : {rel_path_to_dir}/{repertoire}\tRoute : {route}{repertoire}/")
-
             import_route(repertoire, rel_path_to_dir + f"/{repertoire}", f"{route}{repertoire.lower()}/", app,
                          arguments, repertoire)
 
@@ -64,14 +60,14 @@ def import_route(caller_filename: str, rel_path_to_dir: str, route: str, app: fl
 
         nom_fichier = file[:-3].lower()
 
-        listeFonctions = [
+        liste_fonctions = [
             getattr(module, object) for object in dir(module)
             if isinstance(getattr(module, object), types.FunctionType)
             and retrieveAttr(getattr(module, object), '__module__') == module.__name__
             and getattr(getattr(module, object), "__name__") not in ignore_functions
         ]
 
-        for fonction in listeFonctions:
+        for fonction in liste_fonctions:
             methods = [retrieveAttr(fonction, "method", "GET")]
             url = f"{route}{nom_fichier}/"
 
@@ -83,7 +79,7 @@ def import_route(caller_filename: str, rel_path_to_dir: str, route: str, app: fl
 
             nb_arguments = retrieveAttr(fonction, "co_argcount") or getattr(getattr(fonction, "__code__"), "co_argcount")
 
-            print(f"URL FINALE DE {fonction.__name__} est {url} en utilisant méthode {methods}")
+            print(f"URL FINALE DE {fonction.__name__} est {url} en utilisant méthodes {methods}")
 
             if nb_arguments > 0:
                 app.route(url, methods=methods)(add_attributes(arguments)(fonction))

@@ -1,6 +1,7 @@
 import psycopg2
 import psycopg2.extras
 
+import Utils.Dotenv as Dotenv
 import BDD.BDD_PSQL.PsqlParsers as PsqlParsers
 from BDD.Database import Database
 from Utils.Types import sql_query_json_format
@@ -21,6 +22,7 @@ class PsqlDatabase(Database):
         :param user:
         :param password:
         """
+
         self.sql_connection = psycopg2.connect(database=database, host=url, user=user, password=password, port=port)
         self.sql_cursor = self.sql_connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
@@ -62,3 +64,7 @@ class PsqlDatabase(Database):
 
     def commit(self):
         return self.sql_connection.commit()
+
+    def lastVal(self):
+        self.sql_cursor.execute("select lastval();")
+        return self.sql_cursor.fetchone()[0]

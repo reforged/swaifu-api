@@ -1,29 +1,20 @@
-import json
-import Permissions.Policies as Policies
+import flask
+
+import BDD.Database as Database
 import Erreurs.HttpErreurs as HttpErreurs
-from flask import make_response, Response
+import Permissions.Policies as Policies
+import Utils.HandleUser as HandleUser
+import Utils.Types as Types
 
 
-def me(request, database) -> list | Response:
-    token = Policies.check_token(request, database)
+def me(database: Database.Database, request: flask.Request) -> Types.func_resp:
+    token: Types.union_dss_n = Policies.check_token(request, database)
 
     if token is None:
-        return make_response(HttpErreurs.non_authentifie, 400, HttpErreurs.non_authentifie)
+        return flask.make_response(HttpErreurs.non_authentifie, 400, HttpErreurs.non_authentifie)
 
-    query = {
-        "select": [
-            ["users", "firstname"],
-            ["users", "email"],
-            ["users", "lastname"],
-            ["users", "created_at"],
-            ["users", "updated_at"]
-        ],
-        "where": [
-            ["users", "id", token["id"], "and"]
-        ],
-        "from": {
-            "tables": ["users"]
-        }
-    }
+    return_value = HandleUser.getUserByUuid(database, token['id'])[0]
+    del return_value["password"]
 
-    return database.query(query)[0]
+    # TODO: [0] présent avant ?
+    return return_value

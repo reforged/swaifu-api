@@ -1,89 +1,55 @@
+import flask
 import hashlib
-import datetime
-import jwt
 
-from Utils.Dotenv import getenv
-from flask import Request, make_response, Response
 import Erreurs.HttpErreurs as HttpErreurs
 
-from BDD.Database import Database
-from Utils.Route import route
+import BDD.Database as Database
 
-from Permissions.Policies import middleware
+import Utils.PasswordHandler as PasswordHandler
+import Utils.Route as Route
+import Utils.TokenHandler as TokenHandler
+import Utils.Types as Types
+
+# from Permissions.Policies import middleware
 
 
 # @middleware(["post:etiquette", "post:question"])
-@route("POST")
-def login(database: Database, request: Request) -> dict[str, str | dict[str, str]] | Response:
-    data = request.get_json()
+@Route.route("POST")
+def login(database: Database.Database, request: flask.Request) -> Types.func_resp:
+    data: dict[str, any] = request.get_json()
 
-    email = data.get("email")
-    password = data.get("password")
+    email: Types.union_s_n = data.get("email")
+    password: Types.union_s_n = data.get("password")
 
-    if email is None or password is None:
-        return make_response("Email ou Mot de Passe manquant",
-                             400,
-                             {'Authentication': '"Identifiants nécessaires"'}
-                             )
+    if None in [email, password]:
+        return flask.make_response("Email ou Mot de Passe manquant",
+                                   400,
+                                   {'Authentication': '"Identifiants nécessaires"'}
+                                   )
 
-    hashed_password = hashlib.sha256(password.encode()).hexdigest()
+    hashed_password: str = hashlib.sha256(password.encode()).hexdigest()
 
     del password
 
-    password_request = {
-        "where": [
-            ["users", "email", email, "and"]
-        ],
-        "from": {
-            "tables": ["users"]
-        }
-    }
-
-    query_result = (database.query(password_request))
+    query_result: list[dict[str, str]] = PasswordHandler.getPasswordByEmail(database, email)
 
     if len(query_result) == 0:
-        return make_response(HttpErreurs.token_invalide, 400, HttpErreurs.token_invalide)
+        return flask.make_response(HttpErreurs.token_invalide, 400, HttpErreurs.token_invalide)
 
-    query_result = query_result[0]
+    query_result: dict[str, str] = query_result[0]
 
-    if hashed_password == query_result["password"]:
-        token = jwt.encode({'id': query_result["id"]}, getenv("token_key"), algorithm="HS256")
+    if hashed_password != query_result["password"]:
+        return flask.make_response("Nom d`utilisateur ou mot de passe incorrect",
+                                   401,
+                                   {'Authentication': '"Authentication requise"'}
+                                   )
 
-        insert = {
-            "table": "api_tokens",
-            "action": "insert",
-            "valeurs": [
-                ["token", token],
-                ["user_id", query_result["id"]],
-                ["expires_at", str((datetime.datetime.now() + datetime.timedelta(hours=24)).astimezone())],
-                ["created_at", str(datetime.datetime.now().astimezone())]
-            ]
-        }
+    del query_result["password"]
 
-        database.execute(insert)
-        database.commit()
+    token: str = TokenHandler.createToken(query_result['id'])
 
-        print({'token': "Bearer " + token, 'user': {
-                        'id': query_result["id"],
-                        'email': email,
-                        'firstname': query_result["firstname"],
-                        'lastname': query_result["lastname"],
-                        'created_at': query_result["created_at"],
-                        'updated_at': query_result["updated_at"]
-                    }
-                })
+    TokenHandler.addToken(database, token, query_result["id"])
 
-        return {'token': "Bearer " + token, 'user': {
-                        'id': query_result["id"],
-                        'email': email,
-                        'firstname': query_result["firstname"],
-                        'lastname': query_result["lastname"],
-                        'created_at': query_result["created_at"],
-                        'updated_at': query_result["updated_at"]
-                    }
-                }
+    return_value: Types.dict_ss_imb = {'token': "Bearer " + token, 'user': query_result}
 
-    return make_response("Nom d'utilisateur ou mot de passe incorrect",
-                         401,
-                         {'Authentication': '"Authentication requise"'}
-                         )
+    return return_value

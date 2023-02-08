@@ -1,60 +1,33 @@
-from Utils.Route import route
-from datetime import datetime
-from flask import make_response
-from Erreurs.HttpErreurs import token_invalide, requete_malforme
-from Permissions.Policies import check_token
-import uuid
+import flask
+
+import BDD.Database as Database
+
+import Erreurs.HttpErreurs as HttpErreurs
+
+import Permissions.Policies as Policies
+
+import Utils.EtiquetteHandler as EtiquetteHandler
+import Utils.Route as Route
+import Utils.Types as Types
 
 
-@route(method="post")
-def etiquette_create(database, request):
-    token = check_token(request, database)
+@Route.route(method="POST")
+def etiquette_create(database: Database.Database, request: flask.Request) -> Types.func_resp:
+    token: dict[str, str] = Policies.check_token(request, database)
 
     if token is None:
-        return make_response(token_invalide, 400, token_invalide)
+        return flask.make_response(HttpErreurs.token_invalide, 400, HttpErreurs.token_invalide)
 
-    data = request.get_json()
+    data: dict[str, str] = request.get_json()
 
-    label = data.get("label", None)
-    description = data.get("description", None)
-    color = data.get("color", None)
-    user_id = token['id']
+    label: str = data.get("label")
+    description: str = data.get("description")
+    color: str = data.get("color")
+    user_id: str = token.get('id')
 
-    for object in [label, description, color, user_id]:
-        if object is None:
-            return make_response(requete_malforme, 400, requete_malforme)
+    if None in [label, description, color, user_id]:
+        return flask.make_response(HttpErreurs.requete_malforme, 400, HttpErreurs.requete_malforme)
 
-    conflict = True
+    EtiquetteHandler.createEtiquette(database, label, description, color)
 
-    while conflict:
-        id = str(uuid.uuid4())
-
-        verification_query = {
-            "where": [
-                ["etiquettes", "id", id, "and"]
-            ],
-            "from": {
-                "tables": ["etiquettes"]
-            }
-        }
-
-        if len(database.query(verification_query)) == 0:
-            conflict = False
-
-    insert_query = {
-        "table": "etiquettes",
-        "action": "insert",
-        "valeurs": [
-            ["id", id],
-            ["label", label],
-            ["description", description],
-            ["color", color],
-            ["created_at", datetime.now().astimezone()],
-            ["updated_at", datetime.now().astimezone()]
-        ]
-    }
-
-    database.execute(insert_query)
-    database.commit()
-
-    return {"success": "yes"}
+    return {"Message": "Succès"}

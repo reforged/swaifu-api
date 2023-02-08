@@ -1,38 +1,21 @@
-from Utils.Route import route
-from Utils.GetEtiquette import getEtiquette
-from Utils.GetReponses import getReponses
+import BDD.Database as Database
+
+import Utils.EtiquetteHandler as EtiquetteHandler
+import Utils.QuestionHandler as QuestionHandler
+import Utils.ReponseHandler as ReponseHandler
+import Utils.Route as Route
+import Utils.Types as Types
+import Utils.HandleUser as UserHandler
 
 
-@route(url='user/<user_id>')
-def user(user_id, database):
-    sql_question_query = {
-        "select": [
-            ["questions", "id"],
-            ["questions", "label"],
-            ["questions", "enonce"],
-            ["questions", "type"],
-            ["questions", "user_id"],
-            ["questions", "updated_at"],
-            ["questions", "created_at"]
-        ],
-        "where": [
-            ["users", "email", user_id, "and"]
-        ],
-        "from": {
-            "tables": ["questions", "users"],
-            "cond": [
-                [
-                    ["questions", "user_id"],
-                    ["users", "id"]
-                ]
-            ]
-        }
-    }
+@Route.route(url='user/<user_id>')
+def user(user_id: str, database: Database.Database) -> list[Types.dict_ss_imb]:
+    user_id: str = UserHandler.getUserByEmail(database, user_id)["id"]
 
-    question_query_result = database.query(sql_question_query)
+    user_questions: list[Types.dict_ss_imb] = QuestionHandler.getQuestionByCreatorUuid(database, user_id)
 
-    for i in range(len(question_query_result)):
-        question_query_result[i]["etiquettes"] = getEtiquette(database, question_query_result[i]["id"])
-        question_query_result[i]["reponses"] = getReponses(database, question_query_result[i]['id'])
+    for question in user_questions:
+        question["etiquettes"] = EtiquetteHandler.getEtiquettesByQuestionId(database, question["id"])
+        question["reponses"] = ReponseHandler.getReponses(database, question['id'])
 
-    return question_query_result
+    return user_questions

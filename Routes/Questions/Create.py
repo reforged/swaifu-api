@@ -1,139 +1,50 @@
-from Permissions.Policies import check_token
-from flask import make_response
-from Erreurs.HttpErreurs import token_invalide, requete_malforme
-from datetime import datetime
-import uuid
-from Utils.Route import route
+import flask
+
+import BDD.Database as Database
+
+import Erreurs.HttpErreurs as HttpErreurs
+
+import Permissions.Policies as Policies
+
+import Utils.EtiquetteHandler as EtiquetteHandler
+import Utils.QuestionHandler as QuestionHandler
+import Utils.ReponseHandler as ReponseHandler
+import Utils.Route as Route
+import Utils.Types as Types
 
 
-@route(method="post")
-def questions_create(database, request):
-    token = check_token(request, database)
+@Route.route(method="POST")
+def questions_create(database: Database.Database, request: flask.Request) -> Types.func_resp:
+    token: dict[str, str] = Policies.check_token(request, database)
 
     if token is None:
-        return make_response(token_invalide, 400, token_invalide)
+        return flask.make_response(HttpErreurs.token_invalide, 400, HttpErreurs.token_invalide)
 
-    data = request.get_json()
+    data: Types.new_que = request.get_json()
 
-    label = data.get("label", None)
-    enonce = data.get("enonce", None)
-    type = data.get("type", None)
-    reponses = data.get("reponses", None)
-    etiquettes= data.get("etiquettes", None)
-    user_id = token['id']
+    label: str = data.get("label")
+    enonce: str = data.get("enonce")
+    type: str = data.get("type")
+    reponses: list[dict[str, str]] = data.get("reponses")
+    etiquettes: str = data.get("etiquettes")
+    user_id: str = token.get('id')
 
-    for object in [label, enonce, type, user_id, reponses, etiquettes]:
-        if object is None:
-            return make_response(requete_malforme, 400, requete_malforme)
+    if None in [label, enonce, type, user_id, reponses, etiquettes]:
+        return flask.make_response(HttpErreurs.requete_malforme, 400, HttpErreurs.requete_malforme)
 
-    conflict = True
-
-    while conflict:
-        question_id = str(uuid.uuid4())
-
-        verification_query = {
-            "where": [
-                ["questions", "id", question_id, "and"]
-            ],
-            "from": {
-                "tables": ["questions"]
-            }
-        }
-
-        if len(database.query(verification_query)) == 0:
-            conflict = False
-
-    insert_query = {
-        "table": "questions",
-        "action": "insert",
-        "valeurs": [
-            ["id", question_id],
-            ["label", label],
-            ["enonce", enonce],
-            ["type", type],
-            ["user_id", user_id],
-            ["created_at", datetime.now().astimezone()],
-            ["updated_at", datetime.now().astimezone()]
-        ]
-    }
-
-    database.execute(insert_query)
-
+    question_id: str = QuestionHandler.createQuestion(database, label, enonce, user_id, False)
 
     for reponse in reponses:
-        conflict = True
+        body: str = reponse.get("body")
+        valide: str = reponse.get("valide")
 
-        body = reponse.get("body", None)
-        valide = reponse.get("valide", None)
+        if None in [body, valide]:
+            return flask.make_response(HttpErreurs.requete_malforme, 400, HttpErreurs.requete_malforme)
 
-        if body is None or valide is None:
-            return make_response(requete_malforme, 400, requete_malforme)
-
-        while conflict:
-            reponse_id = str(uuid.uuid4())
-
-            verification_query = {
-                "where": [
-                    ["reponses", "id", reponse_id, "and"]
-                ],
-                "from": {
-                    "tables": ["reponses"]
-                }
-            }
-
-            if len(database.query(verification_query)) == 0:
-                conflict = False
-
-        insert_reponse_query = {
-            "table": "reponses",
-            "action": "insert",
-            "valeurs": [
-                ["id", reponse_id],
-                ["body", body],
-                ["valide", bool(valide)],
-                ["question_id", question_id],
-                ["created_at", datetime.now().astimezone()],
-                ["updated_at", datetime.now().astimezone()]
-            ]
-        }
-
-        database.execute(insert_reponse_query)
-        
+        ReponseHandler.createReponse(database, body, bool(valide), question_id, False)
        
     for etiquette_id in etiquettes:
-        conflict = True
-
-        if body is None or valide is None:
-            return make_response(requete_malforme, 400, requete_malforme)
-
-        while conflict:
-            etiquette_question_id = str(uuid.uuid4())
-
-            verification_query = {
-                "where": [
-                    ["etiquette_question", "id", etiquette_question_id, "and"]
-                ],
-                "from": {
-                    "tables": ["etiquette_question"]
-                }
-            }
-
-            if len(database.query(verification_query)) == 0:
-                conflict = False
-
-        insert_question_etiquette_query = {
-            "table": "etiquette_question",
-            "action": "insert",
-            "valeurs": [
-                ["id", etiquette_question_id],
-                ["etiquette_id", etiquette_id],
-                ["question_id", question_id],
-            ]
-        }
-
-        database.execute(insert_question_etiquette_query)
-        
-        
+        EtiquetteHandler.joinEtiquetteQuestion(database, question_id, etiquette_id, False)
 
     database.commit()
 

@@ -1,51 +1,29 @@
-from Utils.Route import route
-from Utils.GetEtiquette import getEtiquette
+import BDD.Database as Database
+
+import Utils.EtiquetteHandler as EtiquetteHandler
+import Utils.QuestionHandler as QuestionHandler
+import Utils.Route as Route
+import Utils.Types as Types
 
 
-@route(url="<question_id>")
-def question_get_question_id(question_id, database):
-    sql_question_query = {
-        "where": [
-            ["questions", "user_id", question_id, "and"]
-        ],
-        "from": {
-            "tables": ["questions"]
-        }
-    }
+@Route.route(url="<question_id>")
+def getQuestionByUuid(question_id: str, database: Database.Database) -> Types.dict_ss_imb:
+    # TODO: user_id not question_id ??
+    queried_question: Types.dict_ss_imb = QuestionHandler.getQuestionByUuid(database, question_id)[0]
 
-    question_query_result = database.query(sql_question_query)[0]
+    queried_question["etiquettes"] = EtiquetteHandler.getEtiquettesByQuestionId(database, queried_question["id"])
 
-    question_query_result["etiquettes"] = getEtiquette(database, question_query_result["id"])
-
-    return question_query_result
+    return queried_question
 
 
-@route(method="put", url="<question_id>")
-def get_id(question_id, database):
+@Route.route(method="put", url="<question_id>")
+def putByUuid(question_id: str, database: Database.Database):
     # TODO: Savoir quelle données sont données
     pass
 
 
-@route(method="delete", url="<question_id>")
-def get_id(question_id, database):
-    question_etiquette_execute = {
-        "table": "etiquette_question",
-        "action": "delete",
-        "valeurs": [
-            ["question_id", question_id]
-        ]
-    }
+@Route.route(method="delete", url="<question_id>")
+def deleteByUuid(question_id: str, database: Database.Database) -> dict[str, str]:
+    EtiquetteHandler.removeEtiquette(database, question_id)
 
-    question_execute = {
-        "table": "questions",
-        "action": "delete",
-        "valeurs": [
-            ["id", question_id]
-        ]
-    }
-
-    database.execute(question_etiquette_execute)
-    database.execute(question_execute)
-    database.commit()
-
-    return "yes"
+    return {"Message": "yes"}

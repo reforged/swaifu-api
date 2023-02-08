@@ -39,7 +39,8 @@ def jsonToPsqlQuery(request: sql_query_json_format) -> str:
         # Utilisation de ' et non " obligatoire car postgresql
         query += f" {condition[0]}.{condition[1]} = "
         query += str(condition[2]) if (type(condition[2]) == int) else ("'" + condition[2] + "'")
-        query += f" {condition[3]}"
+        # query += f" {condition[3]}"
+        query += " and"
 
     if len(where) > 0 or len(liste_conditions) > 0:
         query = query[:-3]

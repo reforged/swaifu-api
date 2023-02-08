@@ -1,9 +1,7 @@
-def etiquettes(database):
-    etiquette_query = {
-        "from": {
-            "tables": ["etiquettes"]
-        }
-    }
+import BDD.Database as Database
 
-    return database.query(etiquette_query)
+import Utils.EtiquetteHandler as EtiquetteHandler
 
+
+def etiquettes(database: Database.Database):
+    return EtiquetteHandler.getAllEtiquettes(database)

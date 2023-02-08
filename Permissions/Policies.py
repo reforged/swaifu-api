@@ -46,7 +46,7 @@ def check_perm(db: Database, id: str, permissions: list):
     return True
 
 
-def check_token(req, db: Database):
+def check_token(req, db: Database) -> str or None:
     if "Authorization" not in req.headers:
         return None
 

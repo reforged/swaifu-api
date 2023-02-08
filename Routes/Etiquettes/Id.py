@@ -1,45 +1,21 @@
-from Utils.Route import route
+import BDD.Database as Database
+
+import Utils.EtiquetteHandler as EtiquetteHandler
+import Utils.Route as Route
 
 
-@route(url="<etiquette_id>")
-def etiquette_get_etiquette_id(etiquette_id, database):
-    etiquette_query = {
-        "where": [
-            ["etiquettes", "id", etiquette_id, "and"]
-        ],
-        "from": {
-            "tables": ["etiquettes"]
-        }
-    }
-
-    return database.query(etiquette_query[0])
+@Route.route(url="<etiquette_id>")
+def etiquette_get_etiquette_id(etiquette_id: str, database: Database.Database) -> dict[str, str]:
+    return database.query(EtiquetteHandler.getEtiquetteByUuid(database, etiquette_id))[0]
 
 
-@route(method="put", url="<etiquette_id>")
-def put_id(etiquette_id, database):
+@Route.route(method="put", url="<etiquette_id>")
+def put_id(etiquette_id: str, database: Database.Database) -> None:
     pass
 
 
-@route(method="delete", url="<etiquette_id>")
-def delete_id(etiquette_id, database):
-    question_etiquette_execute = {
-        "table": "etiquette_question",
-        "action": "delete",
-        "valeurs": [
-            ["question_id", etiquette_id]
-        ]
-    }
+@Route.route(method="delete", url="<etiquette_id>")
+def delete_id(etiquette_id: str, database: Database.Database) -> dict[str, str]:
+    EtiquetteHandler.removeEtiquette(database, etiquette_id)
 
-    etiquette_execute = {
-        "table": "etiquettes",
-        "action": "delete",
-        "valeurs": [
-            ["id", etiquette_id]
-        ]
-    }
-
-    database.execute(question_etiquette_execute)
-    database.execute(etiquette_execute)
-    database.commit()
-
-    return "yes"
+    return {"Message": "Succès"}

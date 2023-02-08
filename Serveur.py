@@ -1,9 +1,7 @@
 import flask
 from flask import request, send_from_directory, make_response
-from flask_cors import CORS
 import os
 from Utils.Dotenv import getenv
-import logging
 from BDD.ConnectionHandler import initiate
 
 import Utils.RoutesImporter as RoutesImporter
@@ -11,11 +9,11 @@ import Utils.RoutesImporter as RoutesImporter
 RoutesImporter.current_dir = os.path.dirname(__file__)
 
 psql_params = {
-    "database": getenv("database"),
-    "url": getenv("url"),
-    "user": getenv("user"),
-    "password": getenv("password"),
-    "port": getenv("port")
+    "database": getenv("DB_DBNAME"),
+    "url": getenv("DB_ADDRESS"),
+    "user": getenv("DB_USERNAME"),
+    "password": getenv("DB_PASSWORD"),
+    "port": getenv("DB_PORT")
 }
 
 App = flask.Flask(__name__)
@@ -40,13 +38,13 @@ def after_request_func(response):
 
     return response
 
+
 Db = initiate("psql", psql_params)
 
 
 param = {
     "database": Db,
-    "request": request,
-    "chiffre": 5
+    "request": request
 }
 
 RoutesImporter.import_route(os.path.dirname(__file__), "Routes", "/", App, param, os.path.basename(__file__))

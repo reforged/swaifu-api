@@ -1,28 +1,23 @@
-from flask import make_response
-import Permissions.Policies as Policies
+import flask
+
+import BDD.Database as Database
 import Erreurs.HttpErreurs as HttpErreurs
-from Utils.Route import route
+import Utils.Route as Route
+import Utils.TokenHandler as TokenHandler
+import Utils.Types as Types
 
 
-@route(method="delete")
-def logout(database, request):
-    token = None
+@Route.route(method="delete")
+def logout(database: Database.Database, request: flask.Request) -> Types.func_resp:
+    token: Types.union_s_n = None
 
     if "Authorization" in request.headers:
+        # [7:] Puisque le token est précédé par 'Bearer '
         token = request.headers["Authorization"][7:]
 
     if token is None:
-        return make_response(HttpErreurs.non_authentifie, 400, HttpErreurs.non_authentifie)
+        return flask.make_response(HttpErreurs.non_authentifie, 400, HttpErreurs.non_authentifie)
 
-    remove_token_query = {
-        "table": "api_tokens",
-        "action": "delete",
-        "valeurs": [
-            ["token",  "Bearer " + token]
-        ]
-    }
-
-    database.execute(remove_token_query)
-    database.commit()
+    TokenHandler.removeToken(database, token)
 
     return {"token": token}

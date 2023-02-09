@@ -4,7 +4,6 @@ import psycopg2.extras
 import Utils.Dotenv as Dotenv
 import BDD.BDD_PSQL.PsqlParsers as PsqlParsers
 from BDD.Database import Database
-from Utils.Types import sql_query_json_format
 
 
 class PsqlDatabase(Database):
@@ -15,13 +14,19 @@ class PsqlDatabase(Database):
     sql_connection = None
     sql_cursor = None
 
-    def __init__(self, database: str, url: str, user: str, password: str, port: str) -> None:
+    def __init__(self) -> None:
         """
         Initialise la connection à une base de données MySQL en fonction des paramètres fournis
-        :param url:
-        :param user:
-        :param password:
         """
+
+        database = Dotenv.getenv("DB_DBNAME")
+        url = Dotenv.getenv("DB_ADDRESS")
+        user = Dotenv.getenv("DB_USERNAME")
+        password = Dotenv.getenv("DB_PASSWORD")
+        port = Dotenv.getenv("DB_PORT")
+
+        if None in [database, url, user, password, port]:
+            raise EnvironmentError("Paramètre manquants dans .env")
 
         self.sql_connection = psycopg2.connect(database=database, host=url, user=user, password=password, port=port)
         self.sql_cursor = self.sql_connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
@@ -36,7 +41,7 @@ class PsqlDatabase(Database):
         # self.sql_connection.close()
         # del self.sql_connection
 
-    def query(self, request: sql_query_json_format) -> list[dict[str, str]]:
+    def query(self, request) -> list[dict[str, str]]:
         """
         Execute une requête (de lecture) sur la base de donnée et renvoie une liste de dictionnaires
         Associant pour chaque ligne le nom de la colonne à la valeur
@@ -52,7 +57,7 @@ class PsqlDatabase(Database):
 
         return parsed_query_response
 
-    def execute(self, request: sql_query_json_format) -> list:
+    def execute(self, request) -> list:
         """
         Execute une requête (d'écriture) sur la base de donnée et renvoie une confirmation
         :param request:

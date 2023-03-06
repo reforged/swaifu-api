@@ -50,8 +50,7 @@ def addSequence(database: Database.Database, label: str, question_list: list, co
 
     database.execute(create_sequence)
 
-    for question in question_list:
-        id_question = question['id']
+    for id_question in question_list:
 
         insert_question_sequence = {
             "table": "question_sequence",

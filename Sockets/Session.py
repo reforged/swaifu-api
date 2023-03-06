@@ -15,11 +15,11 @@ class Session:
     """
     Etats :
     0   -> Initialisation + Affichage code pour rejoindre
-    1   -> Début Diffussion
-    2   -> Acceptation Réponses
-    3   -> Refus réponses
-    4   -> Affichage réponses
-    5   -> Fin diffusion scène actuelle
+    1   -> Début Diffussion: start_diffuse
+    2   -> Acceptation Réponses: accept_answers
+    3   -> Refus réponses : reject_answers
+    4   -> Affichage réponses: display_answers
+    5   -> Fin diffusion scène actuelle: end_scene
     """
     codesEnUtilisation: dict[str, int] = {}
 

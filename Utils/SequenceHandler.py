@@ -3,6 +3,8 @@ import uuid
 
 import BDD.Database as Database
 
+reserved_session_sequence_id = []
+
 
 def getSequenceByUuid(database: Database.Database, sequence_id: str) -> list[dict[str, str]]:
     get_sequence = {
@@ -30,7 +32,7 @@ def getSessionSequenceByUuid(database: Database.Database, session_sequence_id: s
     return database.query(get_session_sequence)
 
 
-def addSequence(database: Database.Database, question_list: list, commit: bool = True) -> str:
+def addSequence(database: Database.Database, label: str, question_list: list, commit: bool = True) -> str:
     sequence_uuid: str = str(uuid.uuid4())
 
     while len(getSequenceByUuid(database, sequence_uuid)) > 0:
@@ -41,6 +43,7 @@ def addSequence(database: Database.Database, question_list: list, commit: bool =
         "action": "insert",
         "valeurs": [
             ["id", sequence_uuid],
+            ["label", label],
             ["created_at", datetime.datetime.now()]
         ]
     }
@@ -102,7 +105,7 @@ def getQuestionsBySequenceId(database: Database.Database, sequence_id: str) -> l
 def creerSession(database: Database.Database, sequence_id: str, session_sequence_code: str, commit: bool = True) -> str:
     session_sequence_uuid: str = str(uuid.uuid4())
 
-    while len(getSessionSequenceByUuid(database, session_sequence_uuid)) > 0:
+    while len(getSessionSequenceByUuid(database, session_sequence_uuid)) > 0 and session_sequence_uuid not in reserved_session_sequence_id:
         session_sequence_uuid = str(uuid.uuid4())
 
     insert_session_sequence = {
@@ -113,6 +116,37 @@ def creerSession(database: Database.Database, sequence_id: str, session_sequence
             ["sequence_id", sequence_id],
             ["code", session_sequence_code],
             ["created_at", datetime.datetime.now()]
+        ]
+    }
+
+    database.execute(insert_session_sequence)
+
+    if commit:
+        database.commit()
+
+    return session_sequence_uuid
+
+
+def addSession(database: Database.Database, sequence_id: str, session_sequence_code: str, session_sequence_uuid: str, participants: int, commit: bool = True) -> str:
+    delete_old = {
+        "table": "session_sequence",
+        "action": "delete",
+        "valeurs": [
+            ["session_sequence", "id", session_sequence_uuid]
+        ]
+    }
+
+    database.execute(delete_old)
+
+    insert_session_sequence = {
+        "table": "session_sequence",
+        "action": "insert",
+        "valeurs": [
+            ["id", session_sequence_uuid],
+            ["sequence_id", sequence_id],
+            ["code", session_sequence_code],
+            ["created_at", datetime.datetime.now()],
+            ["participants", participants]
         ]
     }
 

@@ -39,15 +39,16 @@ def import_route(caller_filename: str, rel_path_to_dir: str, route: str, app: fl
         if f"{repertoire}.py" not in fichier_repertoire:
             import_route(repertoire, rel_path_to_dir + f"/{repertoire}", f"{route}{repertoire.lower()}/", app, arguments, repertoire)
 
-        spec = importlib.util.spec_from_file_location(caller_filename if parent_module is None else parent_module,
-                                                      f"{rel_path_to_dir}/{repertoire}.py")
-        module = importlib.util.module_from_spec(spec)
+        else:
+            spec = importlib.util.spec_from_file_location(caller_filename if parent_module is None else parent_module,
+                                                          f"{rel_path_to_dir}/{repertoire}.py")
+            module = importlib.util.module_from_spec(spec)
 
-        spec.loader.exec_module(module)
+            spec.loader.exec_module(module)
 
-        if not hasattr(module, "main"):
-            import_route(repertoire, rel_path_to_dir + f"/{repertoire}", f"{route}{repertoire.lower()}/", app,
-                         arguments, repertoire)
+            if not hasattr(module, "main"):
+                import_route(repertoire, rel_path_to_dir + f"/{repertoire}", f"{route}{repertoire.lower()}/", app,
+                             arguments, repertoire)
 
     for file in fichier_repertoire:
         spec = importlib.util.spec_from_file_location(caller_filename if parent_module is None else parent_module, f"{rel_path_to_dir}/{file}")
@@ -72,7 +73,7 @@ def import_route(caller_filename: str, rel_path_to_dir: str, route: str, app: fl
             url = f"{route}{nom_fichier}/"
 
             if checkAttr(fonction, "append_url"):
-                url = f"{route}/{retrieveAttr(fonction, 'append_url')}"
+                url = f"{route}{retrieveAttr(fonction, 'append_url')}"
 
             elif checkAttr(fonction, "url"):
                 url = retrieveAttr(fonction, "url")

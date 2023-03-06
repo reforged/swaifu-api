@@ -26,7 +26,7 @@ class PsqlDatabase(Database):
         port = Dotenv.getenv("DB_PORT")
 
         if None in [database, url, user, password, port]:
-            raise EnvironmentError("Paramètre manquants dans .env")
+            raise EnvironmentError("Paramètre manquants dans ..env")
 
         self.sql_connection = psycopg2.connect(database=database, host=url, user=user, password=password, port=port)
         self.sql_cursor = self.sql_connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)

@@ -2,7 +2,7 @@ from Utils.Types import *
 from Erreurs.TablesManquantes import TablesManquantes
 
 
-def jsonToPsqlQuery(request: sql_query_json_format) -> str:
+def jsonToPsqlQuery(request: dict) -> str:
     """
     Prends en paramètre un dictionnaire structuré (Voir documentation pour la structure) et construit une
     Requête SQL à partir de ce dernier
@@ -10,6 +10,8 @@ def jsonToPsqlQuery(request: sql_query_json_format) -> str:
     :return:
     """
     query = "select"
+
+    print("request" + str(request))
 
     select = request.get("select", [["", "*"]])
     where = request.get("where", {})
@@ -48,7 +50,7 @@ def jsonToPsqlQuery(request: sql_query_json_format) -> str:
     return query + ";"
 
 
-def jsonToPsqlExecute(request: sql_execute_json_format) -> str:
+def jsonToPsqlExecute(request) -> str:
     table = request.get("table", None)
     valeurs = request.get("valeurs", None)
     action = request.get("action", "insert")

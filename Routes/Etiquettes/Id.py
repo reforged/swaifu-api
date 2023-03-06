@@ -6,7 +6,7 @@ import Utils.Route as Route
 
 @Route.route(url="<etiquette_id>")
 def etiquette_get_etiquette_id(etiquette_id: str, database: Database.Database) -> dict[str, str]:
-    return database.query(EtiquetteHandler.getEtiquetteByUuid(database, etiquette_id))[0]
+    return EtiquetteHandler.getEtiquetteByUuid(database, etiquette_id)[0]
 
 
 @Route.route(method="put", url="<etiquette_id>")

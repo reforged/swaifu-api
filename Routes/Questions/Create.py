@@ -32,7 +32,7 @@ def questions_create(database: Database.Database, request: flask.Request) -> Typ
     if None in [label, enonce, type, user_id, reponses, etiquettes]:
         return flask.make_response(HttpErreurs.requete_malforme, 400, HttpErreurs.requete_malforme)
 
-    question_id: str = QuestionHandler.createQuestion(database, label, enonce, user_id, False)
+    question_id: str = QuestionHandler.createQuestion(database, label, enonce, user_id, type, False)
 
     for reponse in reponses:
         body: str = reponse.get("body")

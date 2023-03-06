@@ -30,7 +30,6 @@ def getEtiquettesByQuestionId(database, question_id):
         "select": [
             ["etiquettes", "id"],
             ["etiquettes", "label"],
-            ["etiquettes", "description"],
             ["etiquettes", "color"],
             ["etiquettes", "created_at"],
             ["etiquettes", "updated_at"]
@@ -56,11 +55,11 @@ def getEtiquettesByQuestionId(database, question_id):
     return database.query(sql_etiquette_query)
 
 
-def createEtiquette(database, label, description, color) -> str:
-    etiquette_id = uuid.uuid4()
+def createEtiquette(database, label, color) -> str:
+    etiquette_id: str = str(uuid.uuid4())
 
     while len(getEtiquetteByUuid(database, etiquette_id)) > 0:
-        etiquette_id = uuid.uuid4()
+        etiquette_id = str(uuid.uuid4())
 
     insert_etiquette = {
         "table": "etiquettes",
@@ -68,7 +67,6 @@ def createEtiquette(database, label, description, color) -> str:
         "valeurs": [
             ["id", etiquette_id],
             ["label", label],
-            ["description", description],
             ["color", color],
             ["created_at", datetime.datetime.now().astimezone()],
             ["updated_at", datetime.datetime.now().astimezone()]

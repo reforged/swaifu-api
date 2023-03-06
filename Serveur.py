@@ -39,7 +39,10 @@ param = {
     "request": flask.request
 }
 
-RoutesImporter.import_route(os.path.dirname(__file__), "Routes", "/", App, param, os.path.basename(__file__))
+# RoutesImporter.import_route(os.path.dirname(__file__), "Routes", "/", App, param, os.path.basename(__file__))
+
+
+RoutesImporter.import_route(os.path.dirname(__file__), r"C:/Users/ospat/PycharmProjects/Api/Routes", "/", App, param, os.path.basename(__file__))
 
 serve_app = ['/', '/manager', '/login', '/register', '/manager/questions', '/manager/etiquettes']
 

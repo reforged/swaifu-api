@@ -13,6 +13,8 @@ import Utils.Types as Types
 
 @Route.route(method="POST")
 def etiquette_create(database: Database.Database, request: flask.Request) -> Types.func_resp:
+
+    # TODO : Enlever et utiliser décorateur de middleware
     token: dict[str, str] = Policies.check_token(request, database)
 
     if token is None:
@@ -21,13 +23,12 @@ def etiquette_create(database: Database.Database, request: flask.Request) -> Typ
     data: dict[str, str] = request.get_json()
 
     label: str = data.get("label")
-    description: str = data.get("description")
     color: str = data.get("color")
     user_id: str = token.get('id')
 
-    if None in [label, description, color, user_id]:
+    if None in [label, color, user_id]:
         return flask.make_response(HttpErreurs.requete_malforme, 400, HttpErreurs.requete_malforme)
 
-    EtiquetteHandler.createEtiquette(database, label, description, color)
+    EtiquetteHandler.createEtiquette(database, label, color)
 
     return {"Message": "Succès"}

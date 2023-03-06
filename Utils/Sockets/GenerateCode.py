@@ -1,7 +1,7 @@
 import random
 
 
-def generateCode(length: int):
+def generateCode(length: int) -> str:
     response = ''
 
     while (length := length - 1) > 0:

@@ -40,7 +40,7 @@ def getQuestionByCreatorUuid(database: Database.Database, author_id: str) -> lis
     return database.query(get_question)
 
 
-def createQuestion(database: Database.Database, label: str, enonce: str, user_id: str, commit: bool = True) -> str:
+def createQuestion(database: Database.Database, label: str, enonce: str, user_id: str, q_type, commit: bool = True) -> str:
     question_id: str = str(uuid.uuid4())
 
     while len(getQuestionByUuid(database, question_id)) > 0:
@@ -53,7 +53,7 @@ def createQuestion(database: Database.Database, label: str, enonce: str, user_id
             ["id", question_id],
             ["label", label],
             ["enonce", enonce],
-            ["type", type],
+            ["type", q_type],
             ["user_id", user_id],
             ["created_at", datetime.datetime.now().astimezone()],
             ["updated_at", datetime.datetime.now().astimezone()]

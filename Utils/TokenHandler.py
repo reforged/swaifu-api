@@ -17,6 +17,7 @@ def addToken(database: Database.Database, token: str, user_id: str) -> None:
         "valeurs": [
             ["token", token],
             ["user_id", user_id],
+            ["name", "Bearer"],
             ["expires_at", str((datetime.datetime.now() + datetime.timedelta(hours=24)).astimezone())],
             ["created_at", str(datetime.datetime.now().astimezone())]
         ]

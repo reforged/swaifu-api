@@ -1,9 +1,14 @@
+import flask_socketio
 from flask import request
+from flask_socketio import close_room
+
+import BDD.Database as Database
 
 import Utils.Sockets.GenerateCode as GenerateCode
 import Utils.SequenceHandler as SequenceHandler
 import Utils.UserResponseHandler as UserReponseHandler
 import Utils.ReponseHandler as GetReponses
+import Utils.Types as Types
 
 
 class Session:
@@ -16,24 +21,23 @@ class Session:
     4   -> Affichage réponses
     5   -> Fin diffusion scène actuelle
     """
-    codesEnUtilisation = {}
+    codesEnUtilisation: dict[str, int] = {}
 
-    def __init__(self, database, sequence_id, socket):
+    def __init__(self, database: Database.Database, sequence_id: str, socket: flask_socketio.SocketIO):
         self.socket = socket
-        self.db_connection = database
+        self.db_connection: Database.Database = database
 
-        self.code = GenerateCode.generateCode(8)
+        self.code: str = GenerateCode.generateCode(8)
         while self.code not in Session.codesEnUtilisation:
             self.code = GenerateCode.generateCode(8)
 
-        self.population = 0
-        self.etat = 0
-        self.sid_animateur = None
+        self.population: int = 0
+        self.etat: int = 0
 
-        self.sequence_id = sequence_id
-        self.session_sequence_id = None
+        self.sequence_id: str = sequence_id
+        self.session_sequence_id: Types.union_s_n = None
 
-        self.bonne_reponse = None
+        self.bonne_reponse: Types.union_sl_n = None
         self.reponses_sequence_donnees = {}
         self.reponses_sequence_totalite = []
 
@@ -47,7 +51,8 @@ class Session:
 
     def creerSession(self):
         self.session_sequence_id = SequenceHandler.creerSession(self.db_connection, self.sequence_id, self.code)
-        self.liste_questions = SequenceHandler.getQuestionsBySequenceId(self.sequence_id)
+        self.liste_questions: Types.ty_que = SequenceHandler.getQuestionsBySequenceId(self.db_connection,
+                                                                                      self.sequence_id)
 
         for question in self.liste_questions:
             question["reponses"] = GetReponses.getReponses(self.db_connection, question['id'])
@@ -70,7 +75,8 @@ class Session:
             reponse_data = {
                 "id": request.sid,
                 "body": reponse["payload"]["body"],
-                "valide": reponse == "" # TODO: Vérif réponse
+                # TODO: Vérif réponse
+                "valide": reponse == ""
             }
 
             if reponse["type"] == "qcm":
@@ -96,7 +102,7 @@ class Session:
         """
         Stockage des réponses dans la BDD
         Récupération de la prochaine valeur
-        Réinitialisations des valeurs pertinantes -> bonne_reponse, incrémentation de listeQuestions, . . .
+        Réinitialisations des valeurs pertinentes -> bonne_reponse, incrémentation de listeQuestions, . . .
         Récupération de la bonne réponse
         """
         self.index_question_actuelle += 1
@@ -106,11 +112,11 @@ class Session:
         self.bonne_reponse = self.liste_questions[self.index_question_actuelle]["reponses"]
 
         for user_id in self.reponses_sequence_donnees:
-            question_sequence_user_id = UserReponseHandler.addQuestionSequenceUser(self.db_connection, user_id, self.liste_questions[self.index_question_actuelle], self.session_sequence_id)
+            # TODO: CHECK LASTVAL RETURN
+            question_sequence_user_id = UserReponseHandler.addQuestionSequenceUser(self.db_connection, user_id, self.liste_questions[self.index_question_actuelle], self.session_sequence_id)['id']
 
             for reponse in self.reponses_sequence_donnees[user_id]:
                 UserReponseHandler.addUserResponse(self.db_connection, reponse["body"], reponse["valide"], question_sequence_user_id)
-
 
     def finSequence(self):
         # State = 6
@@ -120,4 +126,8 @@ class Session:
         Envoie statistiques ?
         Suppression de la session pour libérer le code
         """
-        pass
+        close_room(self.socket)
+
+        SequenceHandler.addSession(self.db_connection, self.sequence_id, self.code, self.session_sequence_id, self.population, True)
+
+        del Session.codesEnUtilisation[self.code]

@@ -17,16 +17,16 @@ def register(database: Database.Database, request: flask.Request) -> Types.func_
 
     firstname: str = data.get("firstname")
     lastname: str = data.get("lastname")
-    email: str = data.get("email")
+    numero: str = data.get("numero")
     password: str = data.get("password")
 
-    if None in [firstname, lastname, email, password]:
+    if None in [firstname, lastname, numero, password]:
         return flask.make_response(HttpErreurs.requete_malforme, 400, HttpErreurs.requete_malforme)
 
-    if len(HandleUser.getUserByEmail(database, email)) != 0:
+    if len(HandleUser.getUserByNumero(database, numero)) != 0:
         return flask.make_response(HttpErreurs.creation_impossible, 409, HttpErreurs.creation_impossible)
 
-    user_uuid = HandleUser.addUser(database, password, email, firstname, lastname)
+    user_uuid = HandleUser.addUser(database, password, numero, firstname, lastname)
 
     token: str = TokenHandler.createToken(user_uuid)
 
@@ -34,7 +34,7 @@ def register(database: Database.Database, request: flask.Request) -> Types.func_
 
     return_value = {'token':  "Bearer " + token, 'user': {
         'id': user_uuid,
-        'email': email,
+        'numero': numero,
         'firstname': firstname,
         'lastname': lastname,
         'created_at': str(datetime.datetime.now().astimezone()),

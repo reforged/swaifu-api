@@ -53,10 +53,10 @@ def addUsers(database, user_create_list):
     return_uuid = []
 
     for utilisateur in user_create_list:
-        email = utilisateur.get("email", None)
-        firstname = utilisateur.get("firstname", None)
-        lastname = utilisateur.get("lastname", None)
-        password = utilisateur.get("password", None)
+        email = utilisateur.get("numero")
+        firstname = utilisateur.get("firstname")
+        lastname = utilisateur.get("lastname")
+        password = utilisateur.get("password")
 
         for data in [email, firstname, lastname, password]:
             if data is None:
@@ -69,10 +69,10 @@ def addUsers(database, user_create_list):
     return return_uuid
 
 
-def getUserByEmail(database, email):
+def getUserByNumero(database, numero):
     check_user_query = {
         "where": [
-            ["users", "email", email, "and"]
+            ["users", "numero", numero]
         ],
         "from": {
             "tables": ["users"]

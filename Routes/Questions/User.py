@@ -8,9 +8,9 @@ import Utils.Types as Types
 import Utils.HandleUser as UserHandler
 
 
-@Route.route(url='user/<user_id>')
-def user(user_id: str, database: Database.Database) -> list[Types.dict_ss_imb]:
-    user_id: str = UserHandler.getUserByEmail(database, user_id)["id"]
+@Route.route(url='user/<user_numero>')
+def user(user_numero: str, database: Database.Database) -> list[Types.dict_ss_imb]:
+    user_id: str = UserHandler.getUserByNumero(database, user_numero)["id"]
 
     user_questions: list[Types.dict_ss_imb] = QuestionHandler.getQuestionByCreatorUuid(database, user_id)
 

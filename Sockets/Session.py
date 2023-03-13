@@ -15,7 +15,7 @@ class Session:
     """
     Etats :
     0   -> Initialisation + Affichage code pour rejoindre
-    1   -> Début Diffussion: start_diffuse
+    1   -> Début Diffusion: start_diffuse
     2   -> Acceptation Réponses: accept_answers
     3   -> Refus réponses : reject_answers
     4   -> Affichage réponses: display_answers

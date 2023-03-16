@@ -5,7 +5,7 @@ import uuid
 
 import BDD.Database as Database
 
-from Erreurs.HttpErreurs import requete_malforme
+from Utils.Erreurs.HttpErreurs import requete_malforme
 
 
 def addUser(database: Database.Database, password: str, email: str, firstname: str, lastname: str, commit: bool = True):

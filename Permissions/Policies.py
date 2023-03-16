@@ -4,7 +4,7 @@ import jwt
 
 import BDD.Database as Database
 
-from Erreurs.HttpErreurs import *
+from Utils.Erreurs.HttpErreurs import *
 
 import Utils.Dotenv as Dotenv
 

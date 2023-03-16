@@ -3,7 +3,7 @@ import datetime
 
 import BDD.Database as Database
 
-import Erreurs.HttpErreurs as HttpErreurs
+import Utils.Erreurs.HttpErreurs as HttpErreurs
 
 import Utils.Handlers.TokenHandler as TokenHandler
 import Utils.Handlers.UserHandler as UserHandler

@@ -1,7 +1,7 @@
 import flask
 
 import BDD.Database as Database
-import Erreurs.HttpErreurs as HttpErreurs
+import Utils.Erreurs.HttpErreurs as HttpErreurs
 import Permissions.Policies as Policies
 import Utils.Handlers.UserHandler as UserHandler
 import Utils.Types as Types

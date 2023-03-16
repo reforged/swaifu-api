@@ -1,4 +1,4 @@
-from Erreurs.TablesManquantes import TablesManquantes
+from Utils.Erreurs.TablesManquantes import TablesManquantes
 
 
 def jsonToPsqlQuery(request: dict) -> str:

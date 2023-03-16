@@ -1,7 +1,7 @@
 import flask
 import hashlib
 
-import Erreurs.HttpErreurs as HttpErreurs
+import Utils.Erreurs.HttpErreurs as HttpErreurs
 
 import BDD.Database as Database
 

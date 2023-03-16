@@ -1,7 +1,7 @@
 import flask
 
 import BDD.Database as Database
-import Erreurs.HttpErreurs as HttpErreurs
+import Utils.Erreurs.HttpErreurs as HttpErreurs
 import Utils.Route as Route
 import Utils.Handlers.TokenHandler as TokenHandler
 import Utils.Types as Types

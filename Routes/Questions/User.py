@@ -5,7 +5,7 @@ import Utils.QuestionHandler as QuestionHandler
 import Utils.ReponseHandler as ReponseHandler
 import Utils.Route as Route
 import Utils.Types as Types
-import Utils.HandleUser as UserHandler
+import Utils.UserHandler as UserHandler
 
 
 @Route.route(url='user/<user_numero>')

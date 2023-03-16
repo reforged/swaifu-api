@@ -4,7 +4,7 @@ import Erreurs.HttpErreurs as HttpErreurs
 import Utils.Route as Route
 import datetime
 import Utils.TokenHandler as TokenHandler
-import Utils.HandleUser as HandleUser
+import Utils.UserHandler as UserHandler
 import Utils.Types as Types
 
 # from Permissions.Policies import middleware
@@ -23,10 +23,10 @@ def register(database: Database.Database, request: flask.Request) -> Types.func_
     if None in [firstname, lastname, numero, password]:
         return flask.make_response(HttpErreurs.requete_malforme, 400, HttpErreurs.requete_malforme)
 
-    if len(HandleUser.getUserByNumero(database, numero)) != 0:
+    if len(UserHandler.getUserByNumero(database, numero)) != 0:
         return flask.make_response(HttpErreurs.creation_impossible, 409, HttpErreurs.creation_impossible)
 
-    user_uuid = HandleUser.addUser(database, password, numero, firstname, lastname)
+    user_uuid = UserHandler.addUser(database, password, numero, firstname, lastname)
 
     token: str = TokenHandler.createToken(user_uuid)
 

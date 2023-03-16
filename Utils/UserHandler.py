@@ -49,6 +49,19 @@ def addUser(database, password, email, firstname, lastname, commit=True):
     return user_uuid
 
 
+def delete_user(database, user_id):
+    execute_delete_user = {
+        "table": "users",
+        "action": "delete",
+        "valeurs": [
+            ["id", user_id]
+        ]
+    }
+
+    database.execute(execute_delete_user)
+    return database.commit()
+
+
 def addUsers(database, user_create_list):
     return_uuid = []
 

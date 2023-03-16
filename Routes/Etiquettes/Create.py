@@ -13,6 +13,16 @@ import Utils.Types as Types
 
 @Route.route(method="POST")
 def etiquette_create(database: Database.Database, request: flask.Request) -> Types.func_resp:
+    """
+    Gère la route .../etiquettes/create - Méthode POST
+
+    Permet à un utilisateur de créer une nouvelle étiquette de question.
+
+    Nécessite d'être connecté.
+
+    :param database: Objet base de données
+    :param request: Objet Request de flask
+    """
 
     # TODO : Enlever et utiliser décorateur de middleware
     token: dict[str, str] = Policies.check_token(request, database)
@@ -31,4 +41,5 @@ def etiquette_create(database: Database.Database, request: flask.Request) -> Typ
 
     EtiquetteHandler.createEtiquette(database, label, color)
 
+    # TODO: Message plus complexe ?
     return {"Message": "Succès"}

@@ -1,18 +1,32 @@
-import BDD.Database as Database
 import flask
-import Erreurs.HttpErreurs as HttpErreurs
-import Utils.Route as Route
 import datetime
+
+import BDD.Database as Database
+
+import Erreurs.HttpErreurs as HttpErreurs
+
 import Utils.Handlers.TokenHandler as TokenHandler
 import Utils.Handlers.UserHandler as UserHandler
+
+import Utils.Route as Route
 import Utils.Types as Types
 
 # from Permissions.Policies import middleware
 
 
 # @middleware(["post:user"])
-@Route.route(method="post")
+@Route.route(method="POST")
 def register(database: Database.Database, request: flask.Request) -> Types.func_resp:
+    # TODO : D'actualité ?
+    """
+    Gère la route .../authentification/register - Méthode POST
+
+    Permet aux utilisateurs de créer un compte
+
+    :param database: Objet base de données
+    :param request: Objet Request de flask
+    """
+
     data: dict[any] = request.get_json()
 
     firstname: str = data.get("firstname")

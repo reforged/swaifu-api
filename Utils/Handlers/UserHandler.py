@@ -1,11 +1,26 @@
 import datetime
 import hashlib
+import flask
 import uuid
-from flask import make_response
+
+import BDD.Database as Database
+
 from Erreurs.HttpErreurs import requete_malforme
 
 
-def addUser(database, password, email, firstname, lastname, commit=True):
+def addUser(database: Database.Database, password: str, email: str, firstname: str, lastname: str, commit: bool = True):
+    # TODO : Mettre à jour pour INE et email
+    """
+    Fonction gérant la connection à la base de données, abstrait le processus pour créer un nouvel utilisateur.
+
+    :param database: Objet base de données
+    :param password: Mot de passe de l'utilisateur
+    :param email: Email de l'utilisateur
+    :param firstname: Prénom de l'utilisateur
+    :param lastname: Nom de l'utilisateur
+    :param commit: Si la fonction doit suavegarder les changements
+    """
+
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
     del password
 
@@ -49,7 +64,15 @@ def addUser(database, password, email, firstname, lastname, commit=True):
     return user_uuid
 
 
-def delete_user(database, user_id):
+def delete_user(database: Database.Database, user_id: str):
+    """
+    Fonction gérant la connection à la base de données, abstrait le processus pour supprimer un utilisateur en fonction
+    de son id.
+
+    :param database: Objet base de données
+    :param user_id: Id de l'utilisateur concerné
+    """
+
     execute_delete_user = {
         "table": "users",
         "action": "delete",
@@ -62,7 +85,14 @@ def delete_user(database, user_id):
     return database.commit()
 
 
-def addUsers(database, user_create_list):
+def addUsers(database: Database.Database, user_create_list: list[dict]):
+    """
+    Fonction gérant la connection à la base de données, abstrait le processus pour créer plusieurs utilisateurs.
+
+    :param database: Objet base de données
+    :param user_create_list: Liste d'informations d'utilisateurs à créer
+    """
+
     return_uuid = []
 
     for utilisateur in user_create_list:
@@ -73,7 +103,7 @@ def addUsers(database, user_create_list):
 
         for data in [email, firstname, lastname, password]:
             if data is None:
-                return make_response(requete_malforme, 400, requete_malforme)
+                return flask.make_response(requete_malforme, 400, requete_malforme)
 
         return_uuid.append(addUser(database, password, email, firstname, lastname, commit=False))
 
@@ -82,7 +112,14 @@ def addUsers(database, user_create_list):
     return return_uuid
 
 
-def getUserByNumero(database, numero):
+def getUserByNumero(database: Database.Database, numero: str):
+    """
+    Fonction gérant la connection à la base de données, abstrait le processus pour obtenir une étiquette par son id.
+
+    :param database: Objet base de données
+    :param numero: Id de l'étiquette concernée
+    """
+
     check_user_query = {
         "where": [
             ["users", "numero", numero]
@@ -95,7 +132,14 @@ def getUserByNumero(database, numero):
     return database.query(check_user_query)
 
 
-def getUserByUuid(database, uuid):
+def getUserByUuid(database: Database.Database, user_id: str):
+    """
+    Fonction gérant la connection à la base de données, abstrait le processus pour obtenir un utilisateur par son id.
+
+    :param database: Objet base de données
+    :param user_id: Id de l'utilisateur concerné
+    """
+
     get_user_query = {
         "select": [
             ["users", "firstname"],
@@ -105,7 +149,7 @@ def getUserByUuid(database, uuid):
             ["users", "updated_at"]
         ],
         "where": [
-            ["users", "id", uuid, "and"]
+            ["users", "id", user_id, "and"]
         ],
         "from": {
             "tables": ["users"]

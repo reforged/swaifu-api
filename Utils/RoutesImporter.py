@@ -11,7 +11,17 @@ ignore_functions = ["main"]
 
 
 def add_attributes(dict_arguments: dict[str, str]):
+    """
+    Fonction fournissant des paramètres à la fonction décorée en fonction des paramètres déclarés.
+
+    :param dict_arguments: Liste des paramètres potentiellement fournissables aux fonctions
+    """
     def wrapper(fonction):
+        """
+        Fonction récupérant et stockant les paramètres demandés pour pouvoir les fournir lors des appels de la fonction.
+
+        :param fonction: Fonction à qui fournir les paramètres à
+        """
         co_varnames = getattr(getattr(fonction, "__code__"), "co_varnames")
 
         if hasattr(fonction, "info_fonction"):
@@ -30,6 +40,20 @@ def add_attributes(dict_arguments: dict[str, str]):
 
 
 def import_route(caller_filename: str, rel_path_to_dir: str, route: str, app: flask.Flask, arguments: dict, parent_module: str = None) -> None:
+    # TODO : Rendre joli
+    """
+    Fonction qui pour un répertoire donné, url, objet serveur, arguments éventuels et nom du module parent appelant
+    cette fonction, importe automatiquement tous les fichiers dans l'arborescence indiqué, en prenant soin de ne
+    regarder que les fichiers python et répertoires, et ignorant certains répertoires indiqués dans `ignore_dir`
+
+    :param caller_filename: Nom du fichier appelant pour organiser la hiérarchie des imports
+    :param rel_path_to_dir: Chemin relatif au répertoire que nous explorons
+    :param route: url construite jusqu'à présent, du groupe actuel
+    :param app: L'objet correspondant à l'application Serveur, nécessaire pour créer les routes
+    :param arguments: Dictionnaire contenant des arguments pouvant être demandés par les fonctions (voir add_attributes)
+    :param parent_module: Module parent des fonctions qui vont être importés, important pour rester propre et éviter des conflits
+    """
+
     liste_du_repertoire = os.listdir(rel_path_to_dir)
 
     fichier_repertoire = [f for f in liste_du_repertoire if os.path.isfile(os.path.join(rel_path_to_dir, f)) and f[-3:] == ".py"]
@@ -37,7 +61,8 @@ def import_route(caller_filename: str, rel_path_to_dir: str, route: str, app: fl
 
     for repertoire in repertoires_repertoire:
         if f"{repertoire}.py" not in fichier_repertoire:
-            import_route(repertoire, rel_path_to_dir + f"/{repertoire}", f"{route}{repertoire.lower()}/", app, arguments, repertoire)
+            import_route(repertoire, rel_path_to_dir + f"/{repertoire}", f"{route}{repertoire.lower()}/", app,
+                         arguments, repertoire)
 
         else:
             spec = importlib.util.spec_from_file_location(caller_filename if parent_module is None else parent_module,

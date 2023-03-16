@@ -5,6 +5,14 @@ import BDD.Database as Database
 
 
 def getUserResponseByUuid(database: Database.Database, reponse_user_id: str) -> list[dict[str, str]]:
+    """
+    Fonction gérant la connection à la base de données, abstrait le processus pour obtenir la réponse d'un utilisateur
+    par l'identifiant de la réponse.
+
+    :param database: Objet base de données
+    :param reponse_user_id: Id de la réponse de l'utilisateur
+    """
+
     get_reponse_user = {
         "where": [
             ["reponse_user", "id", reponse_user_id]
@@ -18,6 +26,16 @@ def getUserResponseByUuid(database: Database.Database, reponse_user_id: str) -> 
 
 
 def addQuestionSequenceUser(database: Database.Database, user_id: str, question_id: str, session_sequence_id: str) -> dict[str, str]:
+    """
+    Fonction gérant la connection à la base de données, abstrait le processus pour ajouter une question à une séquence
+    existante.
+
+    :param database: Objet base de données
+    :param user_id: Id de l'utilisateur concerné
+    :param question_id: Id de la question
+    :param session_sequence_id: Id du pivot session_sequence
+    """
+
     current_timestamp = datetime.datetime.now().astimezone()
 
     add_question_sequence_user = {
@@ -36,6 +54,17 @@ def addQuestionSequenceUser(database: Database.Database, user_id: str, question_
 
 
 def addUserResponse(database: Database.Database, body: str, valide: bool, qsu_id: str, commit: bool = True) -> str:
+    """
+    Fonction gérant la connection à la base de données, abstrait le processus pour ajouter une nouvelle réponse à une
+    question.
+
+    :param database: Objet base de données
+    :param body: Le corps de la réponse
+    :param valide: Si la réponse est valide ou non
+    :param qsu_id: Id du pivot question_sequence_user
+    :param commit: Si la fonction devrait sauvegarder le changement
+    """
+
     reponse_user_id: str = str(uuid.uuid4())
 
     while len(getUserResponseByUuid(database, reponse_user_id)) > 0:

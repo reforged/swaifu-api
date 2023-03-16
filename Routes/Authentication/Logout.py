@@ -9,6 +9,16 @@ import Utils.Types as Types
 
 @Route.route(method="delete")
 def logout(database: Database.Database, request: flask.Request) -> Types.func_resp:
+    """
+    Gère la route .../authentification/logout - Méthode DELETE
+
+    Permet aux utilisateurs de se déconnecter de leur compte
+
+    Nécessite d'être connecté.
+
+    :param database: Objet base de données
+    :param request: Objet Request de flask
+    """
     token: Types.union_s_n = None
 
     if "Authorization" in request.headers:

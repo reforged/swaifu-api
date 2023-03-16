@@ -15,6 +15,18 @@ import Utils.Types as Types
 
 @Route.route(method="POST")
 def questions_create(database: Database.Database, request: flask.Request) -> Types.func_resp:
+    # TODO : Réécrire fonction pour correspondre à la nouvelle manière
+    """
+    Gère la route .../questions/create - Méthode POST
+
+    Permet à un utilisateur de créer une question.
+
+    Nécessite d'être connecté.
+
+    :param database: Objet base de données
+    :param request: Objet Request de flask
+    """
+
     token: dict[str, str] = Policies.check_token(request, database)
 
     if token is None:
@@ -46,6 +58,8 @@ def questions_create(database: Database.Database, request: flask.Request) -> Typ
     for etiquette_id in etiquettes:
         EtiquetteHandler.joinEtiquetteQuestion(database, question_id, etiquette_id, False)
 
+    # Commit à la toute fin en cas d'erreurs
     database.commit()
 
+    # TODO : Message plus sophistiqué ?
     return {"success": "yes"}

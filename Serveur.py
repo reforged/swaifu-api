@@ -11,6 +11,7 @@ RoutesImporter.current_dir = os.path.dirname(__file__)
 App = flask.Flask(__name__)
 
 
+# TODO : Déplacer dans un fichier à part par propreté
 @App.after_request
 def after_request_func(response):
     origin = flask.request.headers.get('Origin')
@@ -41,9 +42,13 @@ param = {
 
 # RoutesImporter.import_route(os.path.dirname(__file__), "Routes", "/", App, param, os.path.basename(__file__))
 
-
+# TODO : Réparer utilisations lien dynamiques sous Windows.
 RoutesImporter.import_route(os.path.dirname(__file__), r"C:/Users/ospat/PycharmProjects/Api/Routes", "/", App, param, os.path.basename(__file__))
 
+
+
+# ---------------------
+# TODO : Supprimer ? Sert le côté client lorsqu'il est compilé.
 serve_app = ['/', '/manager', '/login', '/register', '/manager/questions', '/manager/etiquettes']
 
 

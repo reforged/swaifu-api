@@ -1,21 +1,18 @@
-from Utils.Types import *
 from Erreurs.TablesManquantes import TablesManquantes
 
 
 def jsonToPsqlQuery(request: dict) -> str:
     """
-    Prends en paramètre un dictionnaire structuré (Voir documentation pour la structure) et construit une
-    Requête SQL à partir de ce dernier
-    :param request:
+    Prends en paramètre un dictionnaire structuré (Voir documentation pour la structure) de type 'Query' et construit
+    Une requête SQL à partir de ce dernier.
+    :param request: Dictionnaire correspondant à une requête SQL
     :return:
     """
     query = "select"
 
-    print("request" + str(request))
-
     select = request.get("select", [["", "*"]])
     where = request.get("where", {})
-    liste_union = request.get("from", None)
+    liste_union = request.get("from")
 
     if liste_union.get("tables") is None:
         raise TablesManquantes("Liste des tables non données")
@@ -41,18 +38,24 @@ def jsonToPsqlQuery(request: dict) -> str:
         # Utilisation de ' et non " obligatoire car postgresql
         query += f" {condition[0]}.{condition[1]} = "
         query += str(condition[2]) if (type(condition[2]) == int) else ("'" + condition[2] + "'")
-        # query += f" {condition[3]}"
         query += " and"
 
     if len(where) > 0 or len(liste_conditions) > 0:
+        # Suppression du 'and' supplémentaire
         query = query[:-3]
 
     return query + ";"
 
 
-def jsonToPsqlExecute(request) -> str:
-    table = request.get("table", None)
-    valeurs = request.get("valeurs", None)
+def jsonToPsqlExecute(request: dict) -> str:
+    """
+    Prends en paramètre un dictionnaire structuré (Voir documentation pour la structure) de type 'execute' et construit
+    Une requête SQL à partir de ce dernier.
+    :param request: Dictionnaire correspondant à une requête SQL
+    :return:
+    """
+    table = request.get("table")
+    valeurs = request.get("valeurs")
     action = request.get("action", "insert")
     query = ""
 

@@ -2,6 +2,15 @@ import Utils.Types as Types
 
 
 def retrieveAttr(fonction, attribute: str, default=None):
+    """
+    Fonction permettant de récupérer un attribut d'une fonction, adaptée pour prendre en compte une fonction ayant comme
+    attribut `info_fonction`, signe que celle-ci a été décorée.
+
+    :param fonction: Fonction concernée
+    :param attribute: Attribut à rechercher
+    :param default: Valeur par défaut, si l'attribut n'est pas trouvé
+    """
+
     valeur_retour: Types.union_dss_n = default
 
     if hasattr(fonction, 'info_fonction'):
@@ -15,6 +24,10 @@ def retrieveAttr(fonction, attribute: str, default=None):
 
 
 def checkAttr(fonction, attribute: str):
+    """
+    Fonction permettant de vérifier si une fonction possède un attribut ou non, adaptée pour prendre en compte une
+    fonction ayant comme attribut `info_fonction`, signe que celle-ci a été décorée.
+    """
     valeur_retour: bool = False
 
     if hasattr(fonction, 'info_fonction'):

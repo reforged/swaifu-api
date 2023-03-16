@@ -16,6 +16,15 @@ import Utils.Types as Types
 # @middleware(["post:etiquette", "post:question"])
 @Route.route("POST")
 def login(database: Database.Database, request: flask.Request) -> Types.func_resp:
+    """
+    Gère la route .../authentification/login - Méthode POST
+
+    Permet aux utilisateurs de se connecter à leur compte et renvoie éventuellement un token
+
+    :param database: Objet base de données
+    :param request: Objet requête de flask
+    :return:
+    """
     data: dict[str, any] = request.get_json()
 
     email: Types.union_s_n = data.get("email")
@@ -29,6 +38,7 @@ def login(database: Database.Database, request: flask.Request) -> Types.func_res
 
     hashed_password: str = hashlib.sha256(password.encode()).hexdigest()
 
+    # Petite prudence probablement inutile vu le fonctionnement de python
     del password
 
     query_result: list[dict[str, str]] = PasswordHandler.getPasswordByEmail(database, email)

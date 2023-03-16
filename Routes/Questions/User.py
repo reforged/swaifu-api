@@ -1,11 +1,11 @@
 import BDD.Database as Database
 
-import Utils.EtiquetteHandler as EtiquetteHandler
-import Utils.QuestionHandler as QuestionHandler
-import Utils.ReponseHandler as ReponseHandler
+import Utils.Handlers.EtiquetteHandler as EtiquetteHandler
+import Utils.Handlers.QuestionHandler as QuestionHandler
+import Utils.Handlers.ReponseHandler as ReponseHandler
 import Utils.Route as Route
 import Utils.Types as Types
-import Utils.UserHandler as UserHandler
+import Utils.Handlers.UserHandler as UserHandler
 
 
 @Route.route(url='user/<user_numero>')

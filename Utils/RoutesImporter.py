@@ -3,7 +3,7 @@ import importlib.util
 import os
 import types
 
-from Utils.ObjectInspector import retrieveAttr, checkAttr
+from Utils.Handlers.ObjectInspector import retrieveAttr, checkAttr
 
 current_dir = None
 ignore_dir = ["__pycache__"]

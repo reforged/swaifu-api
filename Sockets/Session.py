@@ -5,9 +5,9 @@ from flask_socketio import close_room
 import BDD.Database as Database
 
 import Utils.Sockets.GenerateCode as GenerateCode
-import Utils.SequenceHandler as SequenceHandler
-import Utils.UserResponseHandler as UserReponseHandler
-import Utils.ReponseHandler as GetReponses
+import Utils.Handlers.SequenceHandler as SequenceHandler
+import Utils.Handlers.UserResponseHandler as UserReponseHandler
+import Utils.Handlers.ReponseHandler as GetReponses
 import Utils.Types as Types
 
 

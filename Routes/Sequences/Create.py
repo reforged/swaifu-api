@@ -4,7 +4,7 @@ import BDD.Database as Database
 
 import Erreurs.HttpErreurs as HttpErreurs
 
-import Utils.SequenceHandler as SequenceHandler
+import Utils.Handlers.SequenceHandler as SequenceHandler
 
 
 def createSequence(database: Database.Database, request: flask.Request):

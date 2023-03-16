@@ -1,4 +1,4 @@
-import Utils.UserHandler as UserHandler
+import Utils.Handlers.UserHandler as UserHandler
 import Utils.Route as Route
 import BDD.Database as Database
 

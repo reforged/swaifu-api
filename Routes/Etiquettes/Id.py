@@ -1,6 +1,6 @@
 import BDD.Database as Database
 
-import Utils.EtiquetteHandler as EtiquetteHandler
+import Utils.Handlers.EtiquetteHandler as EtiquetteHandler
 import Utils.Route as Route
 
 

@@ -6,9 +6,9 @@ import Erreurs.HttpErreurs as HttpErreurs
 
 import Permissions.Policies as Policies
 
-import Utils.EtiquetteHandler as EtiquetteHandler
-import Utils.QuestionHandler as QuestionHandler
-import Utils.ReponseHandler as ReponseHandler
+import Utils.Handlers.EtiquetteHandler as EtiquetteHandler
+import Utils.Handlers.QuestionHandler as QuestionHandler
+import Utils.Handlers.ReponseHandler as ReponseHandler
 import Utils.Route as Route
 import Utils.Types as Types
 

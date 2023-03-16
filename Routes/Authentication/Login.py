@@ -5,9 +5,9 @@ import Erreurs.HttpErreurs as HttpErreurs
 
 import BDD.Database as Database
 
-import Utils.PasswordHandler as PasswordHandler
+import Utils.Handlers.PasswordHandler as PasswordHandler
 import Utils.Route as Route
-import Utils.TokenHandler as TokenHandler
+import Utils.Handlers.TokenHandler as TokenHandler
 import Utils.Types as Types
 
 # from Permissions.Policies import middleware

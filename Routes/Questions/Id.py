@@ -1,7 +1,7 @@
 import BDD.Database as Database
 
-import Utils.EtiquetteHandler as EtiquetteHandler
-import Utils.QuestionHandler as QuestionHandler
+import Utils.Handlers.EtiquetteHandler as EtiquetteHandler
+import Utils.Handlers.QuestionHandler as QuestionHandler
 import Utils.Route as Route
 import Utils.Types as Types
 

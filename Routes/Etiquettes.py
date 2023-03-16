@@ -1,6 +1,6 @@
 import BDD.Database as Database
 
-import Utils.EtiquetteHandler as EtiquetteHandler
+import Utils.Handlers.EtiquetteHandler as EtiquetteHandler
 
 
 def etiquettes(database: Database.Database):

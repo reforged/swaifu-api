@@ -3,7 +3,7 @@ import flask
 import BDD.Database as Database
 import Erreurs.HttpErreurs as HttpErreurs
 import Permissions.Policies as Policies
-import Utils.UserHandler as UserHandler
+import Utils.Handlers.UserHandler as UserHandler
 import Utils.Types as Types
 
 

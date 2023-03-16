@@ -3,8 +3,8 @@ import flask
 import Erreurs.HttpErreurs as HttpErreurs
 import Utils.Route as Route
 import datetime
-import Utils.TokenHandler as TokenHandler
-import Utils.UserHandler as UserHandler
+import Utils.Handlers.TokenHandler as TokenHandler
+import Utils.Handlers.UserHandler as UserHandler
 import Utils.Types as Types
 
 # from Permissions.Policies import middleware

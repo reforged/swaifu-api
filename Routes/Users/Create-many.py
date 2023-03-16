@@ -1,7 +1,7 @@
 import BDD.Database as Database
 import flask
 
-import Utils.UserHandler as UserHandler
+import Utils.Handlers.UserHandler as UserHandler
 
 
 def createMany(database: Database.Database, request: flask.Request):

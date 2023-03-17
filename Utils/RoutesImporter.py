@@ -5,7 +5,6 @@ import types
 
 from Utils.Handlers.ObjectInspector import retrieveAttr, checkAttr
 
-current_dir = None
 ignore_dir = ["__pycache__"]
 ignore_functions = ["main"]
 
@@ -54,7 +53,7 @@ def import_route(caller_filename: str, rel_path_to_dir: str, route: str, app: fl
     :param parent_module: Module parent des fonctions qui vont être importés, important pour rester propre et éviter des conflits
     """
 
-    liste_du_repertoire = os.listdir(rel_path_to_dir)
+    liste_du_repertoire = os.listdir(os.path.join(rel_path_to_dir))
 
     fichier_repertoire = [f for f in liste_du_repertoire if os.path.isfile(os.path.join(rel_path_to_dir, f)) and f[-3:] == ".py"]
     repertoires_repertoire = [r for r in liste_du_repertoire if os.path.isdir(os.path.join(rel_path_to_dir, r)) and r not in ignore_dir]

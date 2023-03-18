@@ -77,13 +77,14 @@ def getEtiquettesByQuestionId(database: Database.Database, question_id: str):
     return database.query(sql_etiquette_query)
 
 
-def createEtiquette(database: Database.Database, label: str, colour: str) -> str:
+def createEtiquette(database: Database.Database, label: str, colour: str, commit: bool = True) -> str:
     """
     Fonction gérant la connection à la base de données, abstrait le processus pour créer une étiquette.
 
     :param database: Objet base de données
     :param label: Label de la nouvelle étiquette
     :param colour: Couleur de l'étiquette
+    :param commit: Si la fonction doit sauvegarder les changements
     """
 
     etiquette_id: str = str(uuid.uuid4())
@@ -104,7 +105,8 @@ def createEtiquette(database: Database.Database, label: str, colour: str) -> str
     }
 
     database.execute(insert_etiquette)
-    database.commit()
+    if commit:
+        database.commit()
 
     return str(etiquette_id)
 

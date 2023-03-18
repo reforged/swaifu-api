@@ -35,16 +35,17 @@ def questions_create(database: Database.Database, request: flask.Request) -> Typ
     data: Types.new_que = request.get_json()
 
     label: str = data.get("label")
+    slug: str = data.get("slug")
     enonce: str = data.get("enonce")
     type: str = data.get("type")
     reponses: list[dict[str, str]] = data.get("reponses")
-    etiquettes: str = data.get("etiquettes")
+    etiquettes: list[dict[str]] = data.get("etiquettes")
     user_id: str = token.get('id')
 
     if None in [label, enonce, type, user_id, reponses, etiquettes]:
         return flask.make_response(HttpErreurs.requete_malforme, 400, HttpErreurs.requete_malforme)
 
-    question_id: str = QuestionHandler.createQuestion(database, label, enonce, user_id, type, False)
+    question_id: str = QuestionHandler.createQuestion(database, label, slug, enonce, type, user_id, False)
 
     for reponse in reponses:
         body: str = reponse.get("body")
@@ -55,8 +56,14 @@ def questions_create(database: Database.Database, request: flask.Request) -> Typ
 
         ReponseHandler.createReponse(database, body, bool(valide), question_id, False)
        
-    for etiquette_id in etiquettes:
-        EtiquetteHandler.joinEtiquetteQuestion(database, question_id, etiquette_id, False)
+    for etiquette in etiquettes:
+        if len(EtiquetteHandler.getEtiquetteByUuid(database, etiquette["id"])) == 0:
+            label = etiquette.get("label")
+            colour = etiquette.get("color")
+
+            etiquette["id"] = EtiquetteHandler.createEtiquette(database, label, colour, False)
+
+        EtiquetteHandler.joinEtiquetteQuestion(database, question_id, etiquette["id"], False)
 
     # Commit à la toute fin en cas d'erreurs
     database.commit()

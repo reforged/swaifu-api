@@ -1,8 +1,6 @@
 import flask
 import hashlib
 
-import Utils.Erreurs.HttpErreurs as HttpErreurs
-
 import BDD.Database as Database
 
 import Utils.Handlers.PasswordHandler as PasswordHandler
@@ -10,16 +8,13 @@ import Utils.Route as Route
 import Utils.Handlers.TokenHandler as TokenHandler
 import Utils.Types as Types
 
-# from Permissions.Policies import middleware
 
-
-# @middleware(["post:etiquette", "post:question"])
 @Route.route("POST")
-def login(database: Database.Database, request: flask.Request) -> Types.func_resp:
+def email_login(database: Database.Database, request: flask.Request) -> Types.func_resp:
     """
-    Gère la route .../authentification/login - Méthode POST
+    Gère la route .../authentification/login/email - Méthode POST
 
-    Permet aux utilisateurs de se connecter à leur compte et renvoie éventuellement un token
+    Permet aux utilisateurs de se connecter à leur compte utilisant leur adresse e-mail et renvoie un token si bon
 
     :param database: Objet base de données
     :param request: Objet requête de flask
@@ -44,12 +39,12 @@ def login(database: Database.Database, request: flask.Request) -> Types.func_res
     query_result: list[dict[str, str]] = PasswordHandler.getPasswordByEmail(database, email)
 
     if len(query_result) == 0:
-        return flask.make_response(HttpErreurs.token_invalide, 400, HttpErreurs.token_invalide)
+        query_result = [{"password": ""}]
 
     query_result: dict[str, str] = query_result[0]
 
     if hashed_password != query_result["password"]:
-        return flask.make_response("Nom d`utilisateur ou mot de passe incorrect",
+        return flask.make_response("Nom d`utilisateur ou Mot de Passe incorrect",
                                    401,
                                    {'Authentication': '"Authentication requise"'}
                                    )

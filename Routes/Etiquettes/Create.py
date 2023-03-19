@@ -24,7 +24,6 @@ def etiquette_create(database: Database.Database, request: flask.Request) -> Typ
     :param request: Objet Request de flask
     """
 
-    # TODO : Enlever et utiliser décorateur de middleware
     token: dict[str, str] = Policies.check_token(request, database)
 
     if token is None:
@@ -39,7 +38,8 @@ def etiquette_create(database: Database.Database, request: flask.Request) -> Typ
     if None in [label, color, user_id]:
         return flask.make_response(HttpErreurs.requete_malforme, 400, HttpErreurs.requete_malforme)
 
-    EtiquetteHandler.createEtiquette(database, label, color)
+    etiquette_id = EtiquetteHandler.createEtiquette(database, label, color)
 
-    # TODO: Message plus complexe ?
-    return {"Message": "Succès"}
+    data["id"] = etiquette_id
+
+    return data

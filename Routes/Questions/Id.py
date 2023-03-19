@@ -1,5 +1,7 @@
 import BDD.Database as Database
 
+import Utils.Handlers.ReponseHandler as ResponseHandler
+
 import Utils.Handlers.EtiquetteHandler as EtiquetteHandler
 import Utils.Handlers.QuestionHandler as QuestionHandler
 import Utils.Route as Route
@@ -8,7 +10,6 @@ import Utils.Types as Types
 
 @Route.route(url="<question_id>")
 def getQuestionByUuid(question_id: str, database: Database.Database) -> Types.dict_ss_imb:
-    # TODO: user_id not question_id ?? Vérifier implémentation.
     """
     Gère la route .../questions/id - Méthode GET
 
@@ -19,7 +20,8 @@ def getQuestionByUuid(question_id: str, database: Database.Database) -> Types.di
     """
     queried_question: Types.dict_ss_imb = QuestionHandler.getQuestionByUuid(database, question_id)[0]
 
-    queried_question["etiquettes"] = EtiquetteHandler.getEtiquettesByQuestionId(database, queried_question["id"])
+    queried_question["etiquettes"] = EtiquetteHandler.getEtiquettesByQuestionId(database, question_id)
+    queried_question["response"] = ResponseHandler.getReponses(database, question_id)
 
     return queried_question
 
@@ -55,7 +57,6 @@ def deleteByUuid(question_id: str, database: Database.Database) -> dict[str, str
     :param database: Objet base de données
     """
 
-    EtiquetteHandler.removeEtiquette(database, question_id)
+    QuestionHandler.deleteQuestion(database, question_id)
 
-    # TODO : Message plus sophistiqué ?
-    return {"Message": "yes"}
+    return {"message": "Supprimé avec succès"}

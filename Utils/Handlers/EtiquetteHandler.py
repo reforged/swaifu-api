@@ -49,13 +49,6 @@ def getEtiquettesByQuestionId(database: Database.Database, question_id: str):
     """
 
     sql_etiquette_query = {
-        "select": [
-            ["etiquettes", "id"],
-            ["etiquettes", "label"],
-            ["etiquettes", "color"],
-            ["etiquettes", "created_at"],
-            ["etiquettes", "updated_at"]
-        ],
         "where": [
             ["questions", "id", question_id]
         ],
@@ -164,3 +157,20 @@ def joinEtiquetteQuestion(database, question_id, etiquette_id, commit: bool = Tr
 
     if commit:
         database.commit()
+
+
+def unlinkEtiquetteQuestion(database, question_id, commit: bool = True):
+    unlink_question_etiquette = {
+        "table": "etiquette_question",
+        "action": "delete",
+        "valeurs": [
+            ["id", question_id]
+        ]
+    }
+
+    database.execute(unlink_question_etiquette)
+
+    if commit:
+        database.commit()
+
+    return

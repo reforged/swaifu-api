@@ -18,7 +18,11 @@ class Database(ABC):
     def commit(self):
         pass
 
-
     @abstractmethod
     def lastVal(self):
         pass
+
+    @abstractmethod
+    def rollback(self):
+        pass
+

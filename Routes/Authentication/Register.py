@@ -17,7 +17,6 @@ import Utils.Types as Types
 # @middleware(["post:user"])
 @Route.route(method="POST")
 def register(database: Database.Database, request: flask.Request) -> Types.func_resp:
-    # TODO : D'actualité ?
     """
     Gère la route .../authentification/register - Méthode POST
 
@@ -31,16 +30,16 @@ def register(database: Database.Database, request: flask.Request) -> Types.func_
 
     firstname: str = data.get("firstname")
     lastname: str = data.get("lastname")
-    numero: str = data.get("numero")
+    email: str = data.get("email")
     password: str = data.get("password")
 
-    if None in [firstname, lastname, numero, password]:
+    if None in [firstname, lastname, email, password]:
         return flask.make_response(HttpErreurs.requete_malforme, 400, HttpErreurs.requete_malforme)
 
-    if len(UserHandler.getUserByNumero(database, numero)) != 0:
+    if len(UserHandler.getUserByEmail(database, email)) != 0:
         return flask.make_response(HttpErreurs.creation_impossible, 409, HttpErreurs.creation_impossible)
 
-    user_uuid = UserHandler.addUser(database, password, numero, firstname, lastname)
+    user_uuid = UserHandler.addUser(database, password, email, None, firstname, lastname)
 
     token: str = TokenHandler.createToken(user_uuid)
 
@@ -48,7 +47,7 @@ def register(database: Database.Database, request: flask.Request) -> Types.func_
 
     return_value = {'token':  "Bearer " + token, 'user': {
         'id': user_uuid,
-        'numero': numero,
+        'email': email,
         'firstname': firstname,
         'lastname': lastname,
         'created_at': str(datetime.datetime.now().astimezone()),

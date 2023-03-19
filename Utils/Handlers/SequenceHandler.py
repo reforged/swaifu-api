@@ -32,6 +32,17 @@ def getSessionSequenceByUuid(database: Database.Database, session_sequence_id: s
     return database.query(get_session_sequence)
 
 
+# TODO: comment
+def getAllSequences(database):
+    get_all_sequences = {
+        "from": {
+            "tables": ["sequences"]
+        }
+    }
+
+    return database.query(get_all_sequences)
+
+
 def addSequence(database: Database.Database, label: str, question_list: list, commit: bool = True) -> str:
     sequence_uuid: str = str(uuid.uuid4())
 
@@ -44,6 +55,7 @@ def addSequence(database: Database.Database, label: str, question_list: list, co
         "valeurs": [
             ["id", sequence_uuid],
             ["label", label],
+            ["created_at", datetime.datetime.now()]
             ["created_at", datetime.datetime.now()]
         ]
     }

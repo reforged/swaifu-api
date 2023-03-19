@@ -25,6 +25,27 @@ def getUserResponseByUuid(database: Database.Database, reponse_user_id: str) -> 
     return database.query(get_reponse_user)
 
 
+def getUserResponseByQSUId(database: Database.Database, qsu_id: str) -> list[dict[str, str]]:
+    """
+    Fonction gérant la connection à la base de données, abstrait le processus pour obtenir la réponse d'un utilisateur
+    par l'identifiant du qsu.
+
+    :param database: Objet base de données
+    :param qsu_id: Id de la question de l'utilisateur
+    """
+
+    get_reponse_user = {
+        "where": [
+            ["reponse_user", "id", qsu_id]
+        ],
+        "from": {
+            "tables": ["reponse_user"]
+        }
+    }
+
+    return database.query(get_reponse_user)
+
+
 def addQuestionSequenceUser(database: Database.Database, user_id: str, question_id: str, session_sequence_id: str) -> dict[str, str]:
     """
     Fonction gérant la connection à la base de données, abstrait le processus pour ajouter une question à une séquence

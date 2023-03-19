@@ -49,9 +49,11 @@ class PsqlDatabase(Database.Database):
         :param request:
         :return:
         """
-        sql_request = PsqlParsers.jsonToPsqlQuery(request)
-        self.sql_cursor.execute(sql_request)
+        query, sql_request = PsqlParsers.jsonToPsqlQuery(request)
+
+        self.sql_cursor.execute(query, sql_request)
         self.sql_connection.commit()
+
         query_result = self.sql_cursor.fetchall()
 
         parsed_query_response = [{column_name: row[column_name] for column_name in row} for row in query_result]
@@ -64,9 +66,9 @@ class PsqlDatabase(Database.Database):
         :param request:
         :return:
         """
-        # TODO: Ajout de vérification au préalable
-        sql_request = PsqlParsers.jsonToPsqlExecute(request)
-        return self.sql_cursor.execute(sql_request)
+
+        query, sql_request = PsqlParsers.jsonToPsqlExecute(request)
+        return self.sql_cursor.execute(query, sql_request)
 
     def commit(self):
         return self.sql_connection.commit()
@@ -74,3 +76,6 @@ class PsqlDatabase(Database.Database):
     def lastVal(self):
         self.sql_cursor.execute("select lastval();")
         return self.sql_cursor.fetchone()[0]
+
+    def rollback(self):
+        self.sql_connection.rollback()

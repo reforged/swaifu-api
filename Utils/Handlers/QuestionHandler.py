@@ -4,6 +4,8 @@ import json
 
 import BDD.Database as Database
 
+import Utils.Handlers.EtiquetteHandler as EtiquetteHandler
+
 
 def parseQuestions(func):
     def inner(*args, **kwargs):
@@ -117,3 +119,23 @@ def createQuestion(database: Database.Database, label: str, slug: str, enonce: s
         database.commit()
 
     return question_id
+
+
+# TODO: Comment
+def deleteQuestion(database, question_id, commit: bool = True):
+    delete_question_query = {
+        "table": "questions",
+        "action": "delete",
+        "valeurs": [
+            ["id", question_id]
+        ]
+    }
+
+    EtiquetteHandler.unlinkEtiquetteQuestion(database, question_id, False)
+
+    database.execute(delete_question_query)
+
+    if commit:
+        database.commit()
+
+    return

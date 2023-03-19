@@ -8,14 +8,14 @@ import BDD.Database as Database
 from Utils.Erreurs.HttpErreurs import requete_malforme
 
 
-def addUser(database: Database.Database, password: str, email: str, firstname: str, lastname: str, commit: bool = True):
-    # TODO : Mettre à jour pour INE et email
+def addUser(database: Database.Database, password: str, email, numero, firstname: str, lastname: str, commit: bool = True) -> str:
     """
     Fonction gérant la connection à la base de données, abstrait le processus pour créer un nouvel utilisateur.
 
     :param database: Objet base de données
     :param password: Mot de passe de l'utilisateur
     :param email: Email de l'utilisateur
+    :param numero: Numero étudiant de l'utilisateur
     :param firstname: Prénom de l'utilisateur
     :param lastname: Nom de l'utilisateur
     :param commit: Si la fonction doit suavegarder les changements
@@ -48,6 +48,7 @@ def addUser(database: Database.Database, password: str, email: str, firstname: s
         "valeurs": [
             ["id", user_uuid],
             ["email", email],
+            ["numero", numero],
             ["firstname", firstname],
             ["lastname", lastname],
             ["password", hashed_password],
@@ -96,16 +97,16 @@ def addUsers(database: Database.Database, user_create_list: list[dict]):
     return_uuid = []
 
     for utilisateur in user_create_list:
-        email = utilisateur.get("numero")
+        numero = utilisateur.get("numero")
         firstname = utilisateur.get("firstname")
         lastname = utilisateur.get("lastname")
         password = utilisateur.get("password")
 
-        for data in [email, firstname, lastname, password]:
+        for data in [numero, firstname, lastname, password]:
             if data is None:
                 return flask.make_response(requete_malforme, 400, requete_malforme)
 
-        return_uuid.append(addUser(database, password, email, firstname, lastname, commit=False))
+        return_uuid.append(addUser(database, password, None, numero, firstname, lastname, commit=False))
 
     database.commit()
 
@@ -123,6 +124,26 @@ def getUserByNumero(database: Database.Database, numero: str):
     check_user_query = {
         "where": [
             ["users", "numero", numero]
+        ],
+        "from": {
+            "tables": ["users"]
+        }
+    }
+
+    return database.query(check_user_query)
+
+
+def getUserByEmail(database: Database.Database, email: str):
+    """
+    Fonction gérant la connection à la base de données, abstrait le processus pour obtenir un utilisateur par son email.
+
+    :param database: Objet base de données
+    :param email: Id de l'étiquette concernée
+    """
+
+    check_user_query = {
+        "where": [
+            ["users", "email", email]
         ],
         "from": {
             "tables": ["users"]
@@ -157,3 +178,13 @@ def getUserByUuid(database: Database.Database, user_id: str):
     }
 
     return database.query(get_user_query)
+
+
+def getAllUsers(database: Database.Database):
+    get_users_query = {
+        "from": {
+            "table": ["users"]
+        }
+    }
+
+    return database.query(get_users_query)

@@ -27,7 +27,7 @@ def getQuestionByUuid(question_id: str, database: Database.Database) -> Types.di
 
 
 @Route.route(method="put", url="<question_id>")
-def putByUuid(question_id: str, database: Database.Database):
+def putByUuid(question_id: str, database: Database.Database, request):
     # TODO: Savoir quelle données sont données
     """
     Gère la route .../questions/id - Méthode PUT
@@ -41,7 +41,9 @@ def putByUuid(question_id: str, database: Database.Database):
     :param question_id: Id de la question désirée
     :param database: Objet base de données
     """
-    pass
+    data = request.get_json()
+    QuestionHandler.alterQuestion(database, data)
+    return data
 
 
 @Route.route(method="delete", url="<question_id>")
@@ -60,3 +62,4 @@ def deleteByUuid(question_id: str, database: Database.Database) -> dict[str, str
     QuestionHandler.deleteQuestion(database, question_id)
 
     return {"message": "Supprimé avec succès"}
+

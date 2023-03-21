@@ -49,6 +49,7 @@ def getAllQuestions(database: Database.Database) -> list[dict[str, str]]:
     :param database: Objet base de données
     """
 
+
     get_questions = {
         "from": {
             "tables": ["questions"]
@@ -139,3 +140,34 @@ def deleteQuestion(database, question_id, commit: bool = True):
         database.commit()
 
     return
+
+
+def alterQuestion(database: Database.Database, valeurs: dict, commit: bool = True):
+
+    nouvelles_valeurs = []
+
+    if "label" in valeurs :
+        nouvelles_valeurs.append(["label", valeurs["label"]])
+    if "slug" in valeurs :
+        nouvelles_valeurs.append(["slug", valeurs["slug"]])
+    if "enonce" in valeurs :
+        nouvelles_valeurs.append(["enonce", valeurs["enonce"]])
+    if "type" in valeurs :
+        nouvelles_valeurs.append(["type", valeurs["type"]])
+    nouvelles_valeurs.append(["updated_at", datetime.datetime.now().astimezone()])
+
+
+    alter_query = {
+        "primary" : ["id", question_id]
+        "table": "questions",
+        "action": "alter",
+        "valeurs": nouvelles_valeurs
+    }
+
+    database.execute(alter_query)
+
+    if commit:
+        database.commit()
+
+    return question_id
+

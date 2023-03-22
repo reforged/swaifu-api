@@ -1,16 +1,13 @@
-import BDD.Database as Database
-
-import Utils.Handlers.EtiquetteHandler as EtiquetteHandler
+import BDD.Model as Model
 
 
-def etiquettes(database: Database.Database) -> list[dict]:
+def etiquettes(query_builder: Model.Model) -> list[dict]:
     """
-    Gère la route .../etiquettes - Méthode GET
+    Gère la route /etiquettes - Méthode GET
 
     Permet à un utilisateur d'obtenir toutes les étiquettes.
 
-    :param database: Objet base de données
-    :return:
+    :param query_builder: Objet Model
     """
 
-    return EtiquetteHandler.getAllEtiquettes(database)
+    return query_builder.table("etiquettes").execute()

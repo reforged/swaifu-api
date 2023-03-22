@@ -1,26 +1,34 @@
-import BDD.Database as Database
+import json
 
-import Utils.Handlers.EtiquetteHandler as EtiquetteHandler
-import Utils.Handlers.QuestionHandler as QuestionHandler
-import Utils.Handlers.ReponseHandler as ReponseHandler
+import BDD.Model as Model
 
 import Utils.Types as Types
 
 
-def questions(database: Database.Database) -> list[Types.dict_ss_imb]:
-    # TODO : Implémenter correctement (Connection et ne peut tout voir)
+def questions(query_builder: Model.Model) -> list[Types.dict_ss_imb]:
     """
     Gère la route .../questions - Méthode GET
 
     Permet de récupérer toutes les questions sur le serveur ainsi que leurs étiquettes et réponses.
 
-    :param database: Objet base de données
+    :param query_builder: Objet Model
     """
 
-    liste_questions = QuestionHandler.getAllQuestions(database)
+    liste_questions = query_builder.table("questions").execute(False, False)
+    info_wanted = ["users.id", "users.email", "users.numero", "users.firstname", "users.lastname",
+                   "users.created_at", "users.updated_at"]
 
+    # Pour chaque question, on charge les étiquettes, les réponses ainsi que le créateur de la question
     for question in liste_questions:
-        question["etiquettes"] = EtiquetteHandler.getEtiquettesByQuestionId(database, question['id'])
-        question["reponses"] = ReponseHandler.getReponses(database, question['id'])
+        question.load("etiquettes")
+        question.load("reponses")
+        # On ne récupère pas le mot de passe...
+        question.load("user", query_builder.select(*info_wanted))
 
-    return liste_questions
+    res = [row.export() for row in liste_questions]
+
+    for question in res:
+        # Pour chaque question il faut également désérialiser l'énoncé
+        question["enonce"] = json.loads(question["enonce"])
+
+    return res

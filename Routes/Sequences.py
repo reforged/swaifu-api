@@ -1,29 +1,23 @@
-import BDD.Database as Database
+import json
 
-import Utils.Handlers.SequenceHandler as SequenceHandler
-import Utils.Handlers.QuestionSequenceHandler as QuestionSequenceHandler
-import Utils.Handlers.SessionHandler as SessionHandler
-import Utils.Handlers.QuestionSequenceUserHandler as QuestionSequenceUserHandler
-import Utils.Handlers.UserResponseHandler as UserResponseHandler
+import BDD.Model as Model
 
 
-# TODO: Marche ??
-def getAllSequences(database: Database.Database):
-    sequences = SequenceHandler.getAllSequences(database)
+def getAllSequences(query_builder: Model.Model):
+    """
+    Gère la route .../sequences - Méthode GET
 
-    for sequence in sequences:
-        sequence["questions"] = QuestionSequenceHandler.getQuestionBySequenceId(database, sequence["id"])
-        sequence["sessions"] = SessionHandler.getSessionsBySequenceId(database, sequence["id"])
+    Permet à un utilisateur de récupérer toutes les permissions.
 
-        for session in sequence["sessions"]:
-            session["reponses"] = QuestionSequenceUserHandler.getQuestionSequenceUserBySessionId(database, session["id"])
+    :param query_builder: Objet Model
+    """
 
-            for reponse in session["reponses"]:
-                resp = UserResponseHandler.getUserResponseByQSUId(reponse["id"])
+    # Pour chaque séquence, on charge également la liste des questions associée
+    res = [row.export() for row in query_builder.table("sequences").load("questions")]
 
-                reponse["body"] = resp["body"]
-                reponse["valide"] = resp["valide"]
+    for row in res:
+        # Et pour ces questions, on désérialise l'énoncé
+        for question in row.get("questions", []):
+            question["enonce"] = json.loads(question["enonce"])
 
-                del reponse["user_id"]
-
-    return sequences
+    return res

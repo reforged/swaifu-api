@@ -2,28 +2,10 @@ import uuid
 import datetime
 
 import BDD.Database as Database
+import BDD.Model as Model
 
 
-def getReponseByUuid(database: Database.Database, reponse_id: str) -> list[dict[str, str]]:
-    """
-    Fonction gérant la connection à la base de données, abstrait le processus pour obtenir une réponse par son id.
-
-    :param database: Objet base de données
-    :param reponse_id: Id de la réponse concernée
-    """
-
-    get_reponse = {
-        "where": [
-            ["reponses", "id", reponse_id]
-        ],
-        "from": {
-            "tables": ["reponses"]
-        }
-    }
-
-    return database.query(get_reponse)
-
-
+# TODO: SUPPRIMER
 def getReponses(database: Database.Database, question_id: str) -> list[dict[str, str]]:
     """
     Fonction gérant la connection à la base de données, abstrait le processus pour obtenir toutes les réponses à une
@@ -45,7 +27,7 @@ def getReponses(database: Database.Database, question_id: str) -> list[dict[str,
     return database.query(sql_etiquette_query)
 
 
-def createReponse(database: Database.Database, body: str, valide: bool, question_id: str, commit: bool = True) -> str:
+def createReponse(query_builder: Model.Model, body: str, valide: bool, question_id: str, commit: bool = True) -> str:
     """
     Fonction gérant la connection à la base de données, abstrait le processus pour créer une réponse.
 
@@ -58,25 +40,18 @@ def createReponse(database: Database.Database, body: str, valide: bool, question
 
     reponse_id: str = str(uuid.uuid4())
 
-    while len(getReponseByUuid(database, reponse_id)) > 0:
+    while len(query_builder.table("reponses").where("id", reponse_id).execute()) > 0:
         reponse_id = str(uuid.uuid4())
 
-    insert_reponse_query = {
-        "table": "reponses",
-        "action": "insert",
-        "valeurs": [
-            ["id", reponse_id],
-            ["body", body],
-            ["valide", valide],
-            ["question_id", question_id],
-            ["created_at", datetime.datetime.now().astimezone()],
-            ["updated_at", datetime.datetime.now().astimezone()]
-        ]
+    params = {
+        "id": reponse_id,
+        "body": body,
+        "valide": valide,
+        "question_id": question_id,
+        "created_at": datetime.datetime.now().astimezone(),
+        "updated_at": datetime.datetime.now().astimezone()
     }
 
-    database.execute(insert_reponse_query)
-
-    if commit:
-        database.commit()
+    query_builder.table("reponses", "insert").where(params).execute(commit=commit)
 
     return reponse_id

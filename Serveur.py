@@ -2,6 +2,7 @@ import flask
 import os
 
 import BDD.ConnectionHandler as ConnectionHandler
+import BDD.Model as Model
 
 import Utils.Handlers.CorsHandler as CorsHandler
 
@@ -17,10 +18,12 @@ App.after_request(CorsHandler.after_request_func)
 
 
 Db = ConnectionHandler.initiate(Dotenv.getenv("DB_TYPE"))
+QueryBuilder = Model.Model(Db)
 
 
 param = {
     "database": Db,
+    "query_builder": QueryBuilder,
     "request": flask.request
 }
 
@@ -48,4 +51,4 @@ def b(name):
     return flask.send_from_directory('Static/assets', name)
 
 
-App.run(port=3333)
+App.run(port=3333, threaded=False)

@@ -1,13 +1,14 @@
-import BDD.Database as Database
+import BDD.Model as Model
 import flask
 
 import Utils.Handlers.UserHandler as UserHandler
+import Utils.Erreurs.HttpErreurs as HttpErreurs
 
 import Utils.Route as Route
 
 
 @Route.route(method="POST")
-def createMany(database: Database.Database, request: flask.Request):
+def createMany(query_builder: Model.Model, request: flask.Request):
     """
     Gère la route .../users/create-many - Méthode POST
 
@@ -15,12 +16,39 @@ def createMany(database: Database.Database, request: flask.Request):
 
     Nécessite d'être connecté.
 
-    :param database: Objet base de données
+    :param query_builder: Objet Model
     :param request: Objet Request de flask
     """
 
-    listeAInscrire = request.get_json()
+    # Liste des utilisateurs à inscrire
+    liste_a_inscrire = request.get_json()
+    user_id_list = []
 
-    # TODO : Ajout vérification format.
+    # Pour chaque utilisateur on vérifie la bonne présence des données
+    for user_data in liste_a_inscrire:
+        firstname: str = user_data.get("firstname")
+        lastname: str = user_data.get("lastname")
+        password: str = user_data.get("password")
 
-    UserHandler.addUsers(database, listeAInscrire)
+        email: str = user_data.get("email")
+        numero: str = user_data.get("numero")
+
+        for value in [firstname, lastname, password]:
+            if value is None:
+                return flask.make_response(HttpErreurs.requete_malforme, 400, HttpErreurs.requete_malforme)
+
+        if email is None and numero is None:
+            return flask.make_response(HttpErreurs.requete_malforme, 400, HttpErreurs.requete_malforme)
+
+        # On ne commiy bien sûr pas encore
+        user_id = UserHandler.addUser(query_builder, password, email, numero, firstname, lastname, commit=False)
+
+        # On stocke la liste des id des utilisateurs créés
+        user_id_list.append(user_id)
+
+    # A la fin, on commit
+    query_builder.commit()
+
+    # Et on renvoie les id
+    return user_id_list
+

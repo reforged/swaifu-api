@@ -1,7 +1,7 @@
-import flask
 import datetime
+import flask
 
-import BDD.Database as Database
+import BDD.Model as Model
 
 import Utils.Erreurs.HttpErreurs as HttpErreurs
 
@@ -9,6 +9,7 @@ import Utils.Handlers.TokenHandler as TokenHandler
 import Utils.Handlers.UserHandler as UserHandler
 
 import Utils.Route as Route
+
 import Utils.Types as Types
 
 # from Permissions.Policies import middleware
@@ -16,13 +17,13 @@ import Utils.Types as Types
 
 # @middleware(["post:user"])
 @Route.route(method="POST")
-def register(database: Database.Database, request: flask.Request) -> Types.func_resp:
+def register(query_builder: Model.Model, request: flask.Request) -> Types.func_resp:
     """
     Gère la route .../authentification/register - Méthode POST
 
     Permet aux utilisateurs de créer un compte
 
-    :param database: Objet base de données
+    :param query_builder: Objet Model
     :param request: Objet Request de flask
     """
 
@@ -36,15 +37,17 @@ def register(database: Database.Database, request: flask.Request) -> Types.func_
     if None in [firstname, lastname, email, password]:
         return flask.make_response(HttpErreurs.requete_malforme, 400, HttpErreurs.requete_malforme)
 
-    if len(UserHandler.getUserByEmail(database, email)) != 0:
+    # Une inscription manuelle, sur cette route se fait forcément avec email
+    if len(query_builder.table("users").where("email", email).execute()) != 0:
         return flask.make_response(HttpErreurs.creation_impossible, 409, HttpErreurs.creation_impossible)
 
-    user_uuid = UserHandler.addUser(database, password, email, None, firstname, lastname)
+    user_uuid = UserHandler.addUser(query_builder, password, email, None, firstname, lastname)
 
     token: str = TokenHandler.createToken(user_uuid)
 
-    TokenHandler.addToken(database, token, user_uuid)
+    TokenHandler.addToken(query_builder, token, user_uuid)
 
+    # Moche mais permet de renvoyer les bonnes données
     return_value = {'token':  "Bearer " + token, 'user': {
         'id': user_uuid,
         'email': email,

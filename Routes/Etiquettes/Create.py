@@ -1,18 +1,20 @@
 import flask
 
-import BDD.Database as Database
-
-import Utils.Erreurs.HttpErreurs as HttpErreurs
+import BDD.Model as Model
 
 import Permissions.Policies as Policies
 
+import Utils.Erreurs.HttpErreurs as HttpErreurs
+
 import Utils.Handlers.EtiquetteHandler as EtiquetteHandler
+
 import Utils.Route as Route
+
 import Utils.Types as Types
 
 
 @Route.route(method="POST")
-def etiquette_create(database: Database.Database, request: flask.Request) -> Types.func_resp:
+def etiquette_create(query_builder: Model.Model, request: flask.Request) -> Types.func_resp:
     """
     Gère la route .../etiquettes/create - Méthode POST
 
@@ -20,11 +22,11 @@ def etiquette_create(database: Database.Database, request: flask.Request) -> Typ
 
     Nécessite d'être connecté.
 
-    :param database: Objet base de données
+    :param query_builder: Objet Model
     :param request: Objet Request de flask
     """
 
-    token: dict[str, str] = Policies.check_token(request, database)
+    token: dict[str, str] = Policies.check_token(request, query_builder)
 
     if token is None:
         return flask.make_response(HttpErreurs.token_invalide, 400, HttpErreurs.token_invalide)
@@ -38,8 +40,9 @@ def etiquette_create(database: Database.Database, request: flask.Request) -> Typ
     if None in [label, color, user_id]:
         return flask.make_response(HttpErreurs.requete_malforme, 400, HttpErreurs.requete_malforme)
 
-    etiquette_id = EtiquetteHandler.createEtiquette(database, label, color)
+    etiquette_id = EtiquetteHandler.createEtiquette(query_builder, label, color)
 
+    # Puisque nous générons l'id, nous devons l'ajouter pour que le client l'ait
     data["id"] = etiquette_id
 
     return data

@@ -56,9 +56,7 @@ class PsqlDatabase(Database.Database):
 
         query_result = self.sql_cursor.fetchall()
 
-        parsed_query_response = [{column_name: row[column_name] for column_name in row} for row in query_result]
-
-        return parsed_query_response
+        return [{column_name: row[column_name] for column_name in row} for row in query_result]
 
     def execute(self, request) -> list:
         """
@@ -68,6 +66,16 @@ class PsqlDatabase(Database.Database):
         """
 
         query, sql_request = PsqlParsers.jsonToPsqlExecute(request)
+
+        """
+        try:
+            return self.sql_cursor.execute(query, sql_request)
+
+        except:
+            self.rollback()
+            return None
+        """
+
         return self.sql_cursor.execute(query, sql_request)
 
     def commit(self):

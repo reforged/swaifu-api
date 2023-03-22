@@ -4,6 +4,7 @@ import uuid
 import BDD.Database as Database
 
 
+# TODO : SUPPRIMER
 def getUserResponseByUuid(database: Database.Database, reponse_user_id: str) -> list[dict[str, str]]:
     """
     Fonction gérant la connection à la base de données, abstrait le processus pour obtenir la réponse d'un utilisateur

@@ -1,6 +1,7 @@
 import BDD.Database as Database
 
 
+# TODO: Supprimer
 def getPermissionByUser(database: Database.Database, user_id: str) -> list[dict]:
     """
     Fonction gérant la connection à la base de données, abstrait le processus pour obtenir les permissions d'un
@@ -34,26 +35,3 @@ def getPermissionByUser(database: Database.Database, user_id: str) -> list[dict]
     }
 
     return database.query(get_user_permissions)
-
-
-def getPermissionById(database: Database.Database, permission_id: str):
-    get_query = {
-        "where": [
-            ["permissions", "id", permission_id]
-        ],
-        "from": {
-            "tables": ["permissions"]
-        }
-    }
-
-    return database.query(get_query)
-
-
-def getAllPermission(database: Database.Database):
-    get_query = {
-        "from": {
-            "tables": ["permissions"]
-        }
-    }
-
-    return database.query(get_query)

@@ -1,18 +1,22 @@
-import BDD.Database as Database
+import BDD.Model as Model
 
-import Utils.Handlers.EtiquetteHandler as EtiquetteHandler
-import Utils.Handlers.QuestionHandler as QuestionHandler
-import Utils.Handlers.ReponseHandler as ReponseHandler
 import Utils.Route as Route
-import Utils.Types as Types
 
 
 @Route.route(url='<user_id>')
-def user(user_id: str, database: Database.Database) -> list[Types.dict_ss_imb]:
-    user_questions: list[Types.dict_ss_imb] = QuestionHandler.getQuestionByCreatorUuid(database, user_id)
+def user(user_id: str, query_builder: Model.Model):
+    """
+    Gère la route .../questions/user/<user_id> - Méthode GET
+
+    Permet à un utilisateur de récupérer toutes les questions créé par un auteur en fonction de son id.
+
+    :param user_id: Id de l'auteur
+    :param query_builder: Objet Model
+    """
+
+    user_questions = query_builder.table("questions").where("user_id", user_id).load("etiquettes")
 
     for question in user_questions:
-        question["etiquettes"] = EtiquetteHandler.getEtiquettesByQuestionId(database, question["id"])
-        question["reponses"] = ReponseHandler.getReponses(database, question['id'])
+        question.load("reponses")
 
-    return user_questions
+    return [row.export() for row in user_questions]

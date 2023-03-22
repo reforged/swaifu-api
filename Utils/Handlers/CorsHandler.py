@@ -2,6 +2,10 @@ import flask
 
 
 def after_request_func(response):
+    """
+    S'occupe de gérer les erreurs de type CORS, notamment en gérant la méthode OPTIONS
+    """
+
     origin = flask.request.headers.get('Origin')
 
     if flask.request.method == 'OPTIONS':

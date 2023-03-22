@@ -1,11 +1,10 @@
 from BDD.Database import Database
 
 from BDD.BDD_PSQL.PsqlDatabase import PsqlDatabase
-from BDD.BDD_Fichiers.FichierDatabase import RequetesFormatTxt
 
 from Utils.Erreurs.BDD import BDDNonPriseEnCharge
 
-handlers = {"fichier": RequetesFormatTxt, "psql": PsqlDatabase}
+handlers = {"psql": PsqlDatabase}
 
 
 def initiate(systeme: str) -> Database:

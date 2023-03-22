@@ -2,23 +2,12 @@ import datetime
 import uuid
 
 import BDD.Database as Database
+import BDD.Model as Model
 
 reserved_session_sequence_id = []
 
 
-def getSequenceByUuid(database: Database.Database, sequence_id: str) -> list[dict[str, str]]:
-    get_sequence = {
-        "where": [
-            ["sequences", "id", sequence_id, "and"]
-        ],
-        "from": {
-            "tables": ["sequences"]
-        }
-    }
-
-    return database.query(get_sequence)
-
-
+# TODO : Supprimer
 def getSessionSequenceByUuid(database: Database.Database, session_sequence_id: str) -> list[dict[str, str]]:
     get_session_sequence = {
         "where": [
@@ -32,55 +21,36 @@ def getSessionSequenceByUuid(database: Database.Database, session_sequence_id: s
     return database.query(get_session_sequence)
 
 
-# TODO: comment
-def getAllSequences(database):
-    get_all_sequences = {
-        "from": {
-            "tables": ["sequences"]
-        }
-    }
-
-    return database.query(get_all_sequences)
-
-
-def addSequence(database: Database.Database, label: str, question_list: list, commit: bool = True) -> str:
+def addSequence(query_builder: Model.Model, label: str, question_list: list, commit: bool = True) -> str:
     sequence_uuid: str = str(uuid.uuid4())
 
-    while len(getSequenceByUuid(database, sequence_uuid)) > 0:
+    while len(query_builder.table("sequences").where("id", sequence_uuid).execute()) > 0:
         sequence_uuid = str(uuid.uuid4())
 
-    create_sequence = {
-        "table": "sequences",
-        "action": "insert",
-        "valeurs": [
-            ["id", sequence_uuid],
-            ["label", label],
-            ["created_at", datetime.datetime.now()]
-            ["created_at", datetime.datetime.now()]
-        ]
+    params = {
+        "id": sequence_uuid,
+        "label": label,
+        "created_at": datetime.datetime.now(),
+        "updated_at": datetime.datetime.now()
     }
 
-    database.execute(create_sequence)
+    query_builder.table("sequences", "insert").where(params).execute(commit=False)
 
     for id_question in question_list:
-
-        insert_question_sequence = {
-            "table": "question_sequence",
-            "action": "insert",
-            "valeurs": [
-                ["question_id", id_question],
-                ["sequence_id", sequence_uuid]
-            ]
+        params = {
+            "question_id": id_question,
+            "sequence_id": sequence_uuid
         }
 
-        database.execute(insert_question_sequence)
+        query_builder.table("question_sequence", "insert").where(params).execute(commit=False)
 
     if commit:
-        database.commit()
+        query_builder.commit()
 
     return sequence_uuid
 
 
+# TODO : Delete
 def getQuestionsBySequenceId(database: Database.Database, sequence_id: str) -> list[dict[str, str]]:
     get_sequence_questions = {
         "select": [

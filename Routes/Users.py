@@ -1,6 +1,9 @@
 import BDD.Model as Model
 
+import Permissions.Policies as Policies
 
+
+@Policies.middleware(["store:user"], ["update:user"], ["destroy:user"])
 def getAllUsers(query_builder: Model.Model):
     """
     Gère la route .../users - Méthode GET

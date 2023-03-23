@@ -1,6 +1,9 @@
 import BDD.Model as Model
 
+import Permissions.Policies as Policies
 
+
+@Policies.middleware(["store:permission"], ["update:permission"], ["destroy:permissions"])
 def getAllPermissions(query_builder: Model.Model):
     """
     Gère la route .../permissions - Méthode GET

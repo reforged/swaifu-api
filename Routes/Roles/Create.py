@@ -11,6 +11,7 @@ import Utils.Handlers.RoleHandler as RoleHandler
 import Utils.Route as Route
 
 
+@Policies.middleware(["store:role"])
 @Route.route(method="POST")
 def createRole(query_builder: Model.Model, request: flask.Request):
     """

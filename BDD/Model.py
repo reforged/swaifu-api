@@ -11,6 +11,7 @@ import BDD.BDD_TABLES.ApiTokens
 import BDD.BDD_TABLES.Etiquettes
 import BDD.BDD_TABLES.Permissions
 import BDD.BDD_TABLES.Questions
+import BDD.BDD_TABLES.ReponseUser
 import BDD.BDD_TABLES.Reponses
 import BDD.BDD_TABLES.Roles
 import BDD.BDD_TABLES.Sequences
@@ -24,6 +25,7 @@ tables = {
     "permissions": BDD.BDD_TABLES.Permissions.Permissions,
     "questions": BDD.BDD_TABLES.Questions.Questions,
     "reponses": BDD.BDD_TABLES.Reponses.Reponses,
+    "reponse_user": BDD.BDD_TABLES.ReponseUser.ReponseUser,
     "roles": BDD.BDD_TABLES.Roles.Roles,
     "sequences": BDD.BDD_TABLES.Sequences.Sequences,
     "sessions": BDD.BDD_TABLES.Sessions.Sessions,
@@ -224,6 +226,7 @@ class Model:
             # Utilisation de **row pour passer des paramètres nommés et ne pas avoir de soucis d'ordre, et également
             # Permettre de facilement toujours passer le bon nombre de paramètres, peu importe les différences entre
             # Les tables
+
             parsed_query_response[i] = tables.get(self.table_name)(self.new(), **row)
 
         if export:

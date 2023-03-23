@@ -4,8 +4,10 @@ import flask
 import BDD.Model as Model
 
 import Utils.Route as Route
+import Permissions.Policies as Policies
 
 
+@Policies.middleware(["update:etiquette"])
 @Route.route(url="<etiquette_id>")
 def etiquette_get_etiquette_id(etiquette_id: str, query_builder: Model.Model) -> dict[str, str]:
     """
@@ -27,6 +29,7 @@ def etiquette_get_etiquette_id(etiquette_id: str, query_builder: Model.Model) ->
     return res[0]
 
 
+@Policies.middleware(["update:etiquette"])
 @Route.route(method="put", url="<etiquette_id>")
 def put_id(etiquette_id: str, query_builder: Model.Model, request: flask.Request):
     """
@@ -66,6 +69,7 @@ def put_id(etiquette_id: str, query_builder: Model.Model, request: flask.Request
     return {"Message": "Succès"}
 
 
+@Policies.middleware(["destroy:etiquette"])
 @Route.route(method="delete", url="<etiquette_id>")
 def delete_id(etiquette_id: str, query_builder: Model.Model) -> dict[str, str]:
     """

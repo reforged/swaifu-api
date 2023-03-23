@@ -4,7 +4,10 @@ import BDD.Model as Model
 
 import Utils.Types as Types
 
+import Permissions.Policies as Policies
 
+
+@Policies.middleware(["store:question"], ["update:question"], ["destroy:question"])
 def questions(query_builder: Model.Model) -> list[Types.dict_ss_imb]:
     """
     Gère la route .../questions - Méthode GET

@@ -8,7 +8,10 @@ import Utils.Route as Route
 
 import Utils.Types as Types
 
+import Permissions.Policies as Policies
 
+
+@Policies.middleware(["update:question"])
 @Route.route(url="<question_id>")
 def getQuestionByUuid(question_id: str, query_builder: Model.Model) -> Types.dict_ss_imb:
     """
@@ -34,6 +37,7 @@ def getQuestionByUuid(question_id: str, query_builder: Model.Model) -> Types.dic
     return queried_question
 
 
+@Policies.middleware(["update:question"])
 @Route.route(method="put", url="<question_id>")
 def putByUuid(question_id: str, query_builder: Model.Model, request):
     """
@@ -76,6 +80,7 @@ def putByUuid(question_id: str, query_builder: Model.Model, request):
     return {"Message": "Succès"}
 
 
+@Policies.middleware(["destroy:question"])
 @Route.route(method="delete", url="<question_id>")
 def deleteByUuid(question_id: str, query_builder: Model.Model) -> dict[str, str]:
     """

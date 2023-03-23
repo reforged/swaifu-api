@@ -4,7 +4,10 @@ import BDD.Model as Model
 
 import Utils.Route as Route
 
+import Permissions.Policies as Policies
 
+
+@Policies.middleware(["update:role"])
 @Route.route(url="<role_id>")
 def getRoleById(role_id: str, query_builder: Model.Model):
     """

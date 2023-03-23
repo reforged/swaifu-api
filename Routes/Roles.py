@@ -1,6 +1,9 @@
 import BDD.Model as Model
 
+import Permissions.Policies as Policies
 
+
+@Policies.middleware(["store:role"], ["update:role"], ["destroy:role"])
 def getAllRoles(query_builder: Model.Model):
     """
     Gère la route .../roles - Méthode GET

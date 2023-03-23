@@ -12,7 +12,7 @@ import Utils.Route as Route
 
 import Utils.Types as Types
 
-# from Permissions.Policies import middleware
+# from Policies.Policies import middleware
 
 
 # @middleware(["post:user"])

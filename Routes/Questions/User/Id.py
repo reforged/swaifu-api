@@ -2,7 +2,10 @@ import BDD.Model as Model
 
 import Utils.Route as Route
 
+import Permissions.Policies as Policies
 
+
+@Policies.middleware(["store:question"], ["update:question"], ["destroy:question"])
 @Route.route(url='<user_id>')
 def user(user_id: str, query_builder: Model.Model):
     """

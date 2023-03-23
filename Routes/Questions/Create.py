@@ -12,6 +12,7 @@ import Utils.Route as Route
 import Utils.Types as Types
 
 
+@Policies.middleware(["store:question"])
 @Route.route(method="POST")
 def questions_create(query_builder: Model.Model, request: flask.Request) -> Types.func_resp:
     """

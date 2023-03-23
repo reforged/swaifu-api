@@ -6,7 +6,10 @@ import BDD.Model as Model
 
 import Utils.Route as Route
 
+import Permissions.Policies as Policies
 
+
+@Policies.middleware(["update:sequence"])
 @Route.route(url="<sequence_id>")
 def getSequenceById(sequence_id: str, query_builder: Model.Model):
     """
@@ -33,6 +36,7 @@ def getSequenceById(sequence_id: str, query_builder: Model.Model):
     return res
 
 
+@Policies.middleware(["update:sequence"])
 @Route.route("PUT", "<sequence_id>")
 def putBySequenceId(sequence_id: str, query_builder: Model.Model, request: flask.Request):
     """
@@ -70,6 +74,7 @@ def putBySequenceId(sequence_id: str, query_builder: Model.Model, request: flask
     return {"Message": "Succès"}
 
 
+@Policies.middleware(["destroy:sequence"])
 @Route.route("DELETE", "<sequence_id>")
 def deleteSequenceById(sequence_id: str, query_builder: Model.Model):
     """

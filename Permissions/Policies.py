@@ -9,7 +9,7 @@ from Utils.Erreurs.HttpErreurs import *
 import Utils.Dotenv as Dotenv
 
 
-def check_perm(query_builder: Model.Model, user_id: str, permissions: list[str]) -> bool:
+def check_perm(query_builder: Model.Model, user_id: str, *permissions_list: list[list[str]]) -> bool:
     """
     Fonction vérifiant quels droits possède un utilisateur donné et s'assure qu'il a tous les droits demandés
 
@@ -19,40 +19,46 @@ def check_perm(query_builder: Model.Model, user_id: str, permissions: list[str])
     :return:
     """
 
-    role_permissions_labels = [row.export() for row in query_builder.table("users").where("id", user_id).load(
+    role_permissions_key = [row.export() for row in query_builder.table("users").where("id", user_id).load(
         "roles", None, "permissions")]
-    user_permissions_labels = [row.export() for row in query_builder.table("users").where("id", user_id).load(
+    user_permissions_key = [row.export() for row in query_builder.table("users").where("id", user_id).load(
         "permissions")]
 
-    if len(role_permissions_labels) == 0:
+    if len(role_permissions_key) == 0:
         return False
 
-    role_permissions_labels = (role_permissions_labels[0]).get("roles", [])
+    role_permissions_key = (role_permissions_key[0]).get("roles", [])
 
-    permissions_labels = []
+    permissions_key = []
 
-    for role in role_permissions_labels:
+    for role in role_permissions_key:
         for permission in role.get("permissions", []):
             permission_label = permission.get("label")
 
-            if permission_label not in permissions:
-                permissions.append(permission_label)
+            if permission_label not in permissions_key:
+                permissions_key.append(permission_label)
 
-    for user in user_permissions_labels:
+    for user in user_permissions_key:
         for permission in user.get("permissions", []):
             permission_label = permission.get("label")
 
-            if permission_label not in permissions:
-                permissions_labels.append(permission_label)
+            if permission_label not in permissions_key:
+                permissions_key.append(permission_label)
 
-    if "admin" in permissions_labels:
+    if "admin" in permissions_key:
         return True
 
-    for required_permission in permissions:
-        if required_permission not in permissions_labels:
-            return False
+    for required_permission_list in permissions_list:
+        found = 0
 
-    return True
+        for required_permission in required_permission_list:
+            if required_permission in permissions_key:
+                found += 1
+
+        if found == len(required_permission_list):
+            return True
+
+    return False
 
 
 def check_token(req: flask.Request, query_builder: Model.Model) -> str or None:
@@ -89,7 +95,7 @@ def check_token(req: flask.Request, query_builder: Model.Model) -> str or None:
     return decoded_token
 
 
-def middleware(policies: list):
+def middleware(*policies: list[str]):
     """
     Fonction renvoyant un décorateur de fonction, initialise le décorateur en fonction des permissions à vérifier
     :param policies: Liste de labels de permissions

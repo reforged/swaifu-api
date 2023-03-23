@@ -8,7 +8,10 @@ import Utils.Handlers.UserHandler as UserHandler
 
 import Utils.Route as Route
 
+import Permissions.Policies as Policies
 
+
+@Policies.middleware(["store:user"])
 @Route.route(method="POST")
 def createUser(query_builder: Model.Model, request: flask.Request):
     """

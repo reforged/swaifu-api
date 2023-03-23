@@ -6,7 +6,10 @@ import BDD.Model as Model
 
 import Utils.Route as Route
 
+import Permissions.Policies as Policies
 
+
+@Policies.middleware(["update:user"])
 @Route.route(url="<user_id>")
 def getUserById(user_id: str, query_builder: Model.Model):
     """
@@ -35,6 +38,7 @@ def getUserById(user_id: str, query_builder: Model.Model):
     return res
 
 
+@Policies.middleware(["update:user"])
 @Route.route("PUT", "<user_id>")
 def putUserById(user_id: str, query_builder: Model.Model, request: flask.Request):
     """
@@ -75,9 +79,70 @@ def putUserById(user_id: str, query_builder: Model.Model, request: flask.Request
 
     query_builder.table("users", "alter", user_id).where(new_val).execute()
 
+    if data.get("roles", []):
+        old_role = query_builder.table("users").where("id", user_id).load("roles")[0]
+        old_role = [row.get("id") for row in old_role.export().get("roles")]
+
+        new_role_val = []
+        del_role = []
+
+        for role_id in data.get("roles", []):
+            if role_id not in new_role_val:
+                if len(query_builder.table("roles").where("id", role_id).execute()) != 0:
+                    new_role_val.append(role_id)
+
+        for role_id in old_role:
+            if role_id not in new_role_val:
+                del_role.append(role_id)
+
+        for role_id in new_role_val:
+            if role_id not in old_role:
+                params = {
+                    "role_id": role_id,
+                    "user_id": user_id
+                }
+
+                query_builder.table("role_user", "insert").where(params).execute(commit=False)
+
+        for role_id in del_role:
+            if role_id in old_role:
+                query_builder.table("role_user", "delete").where("role_id", role_id).where("user_id", user_id).execute(commit=False)
+
+    if data.get("permissions", []):
+        old_permission = query_builder.table("users").where("id", user_id).load("permissions")[0]
+        old_permission = [row.get("id") for row in old_permission.export().get("permissions")]
+
+        new_permission_val = []
+        del_permission = []
+
+        for permission_id in data.get("permissions", []):
+            if permission_id not in new_permission_val:
+                if len(query_builder.table("permissions").where("id", permission_id).execute()) != 0:
+                    new_permission_val.append(permission_id)
+
+        for permission_id in old_permission:
+            if permission_id not in new_permission_val:
+                del_permission.append(permission_id)
+
+        for permission_id in new_permission_val:
+            if permission_id not in old_permission:
+                params = {
+                    "permission_id": permission_id,
+                    "user_id": user_id
+                }
+
+                query_builder.table("permission_user", "insert").where(params).execute(commit=False)
+
+        for permission_id in del_permission:
+            if permission_id in old_permission:
+                query_builder.table("permission_user", "delete").where("permission_id", permission_id).where("user_id",user_id).execute(commit=False)
+
+    query_builder.commit()
+
     return {"Message": "Succès"}
 
 
+@Policies.middleware(["destroy:user"])
 @Route.route(method="delete", url="<user_id>")
 def delete_user(user_id: str, query_builder: Model.Model):
     """

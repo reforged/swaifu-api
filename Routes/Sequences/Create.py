@@ -8,7 +8,10 @@ import Utils.Erreurs.HttpErreurs as HttpErreurs
 
 import Utils.Handlers.SequenceHandler as SequenceHandler
 
+import Permissions.Policies as Policies
 
+
+@Policies.middleware(["store:sequence"])
 @Route.route("POST")
 def createSequence(query_builder: Model.Model, request: flask.Request):
     """

@@ -2,7 +2,10 @@ import json
 
 import BDD.Model as Model
 
+import Permissions.Policies as Policies
 
+
+@Policies.middleware(["store:sequence"], ["update:sequence"], ["destroy:sequence"])
 def getAllSequences(query_builder: Model.Model):
     """
     Gère la route .../sequences - Méthode GET

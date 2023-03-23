@@ -2,13 +2,15 @@ import flask_socketio
 from flask import request
 from flask_socketio import close_room
 
-import BDD.Database as Database
+import BDD.Model as Model
 
 import Utils.Sockets.GenerateCode as GenerateCode
 import Utils.Handlers.SequenceHandler as SequenceHandler
 import Utils.Handlers.UserResponseHandler as UserReponseHandler
 import Utils.Handlers.ReponseHandler as GetReponses
 import Utils.Types as Types
+
+codesEnUtilisation: dict[str, any] = {}
 
 
 class Session:
@@ -21,41 +23,31 @@ class Session:
     4   -> Affichage réponses: display_answers
     5   -> Fin diffusion scène actuelle: end_scene
     """
-    codesEnUtilisation: dict[str, int] = {}
 
-    def __init__(self, database: Database.Database, sequence_id: str, socket: flask_socketio.SocketIO):
+    liste_questions = []
+    population: int = 0
+    etat: int = 0
+
+    def __init__(self, query_builder: Model.Model, sequence_id: str, socket: flask_socketio.SocketIO):
         self.socket = socket
-        self.db_connection: Database.Database = database
+        self.db_connection: Model.Model = query_builder
+        self.sequence_id: str = sequence_id
+
+        res = query_builder.table("sequences").where("id", sequence_id).load("questions")
+        res = [row.export() for row in res]
+
+        self.liste_questions = res.get("questions", [])
 
         self.code: str = GenerateCode.generateCode(8)
-        while self.code not in Session.codesEnUtilisation:
+        while self.code not in codesEnUtilisation:
             self.code = GenerateCode.generateCode(8)
 
-        self.population: int = 0
-        self.etat: int = 0
+        codesEnUtilisation[self.code] = self
 
-        self.sequence_id: str = sequence_id
-        self.session_sequence_id: Types.union_s_n = None
-
-        self.bonne_reponse: Types.union_sl_n = None
-        self.reponses_sequence_donnees = {}
-        self.reponses_sequence_totalite = []
-
-        Session.codesEnUtilisation[self.code] = self.population
-
-        self.liste_questions = None
         self.index_question_actuelle = 0
 
     def __del__(self):
-        del Session.codesEnUtilisation[self.code]
-
-    def creerSession(self):
-        self.session_sequence_id = SequenceHandler.creerSession(self.db_connection, self.sequence_id, self.code)
-        self.liste_questions: Types.ty_que = SequenceHandler.getQuestionsBySequenceId(self.db_connection,
-                                                                                      self.sequence_id)
-
-        for question in self.liste_questions:
-            question["reponses"] = GetReponses.getReponses(self.db_connection, question['id'])
+        del codesEnUtilisation[self.code]
 
     def envoiQuestions(self):
         self.socket.emit("question", self.liste_questions[self.index_question_actuelle], to=self.code)

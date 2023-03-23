@@ -6,7 +6,10 @@ import Utils.Erreurs.HttpErreurs as HttpErreurs
 
 import Utils.Route as Route
 
+import Permissions.Policies as Policies
 
+
+@Policies.middleware(["store:user"])
 @Route.route(method="POST")
 def createMany(query_builder: Model.Model, request: flask.Request):
     """

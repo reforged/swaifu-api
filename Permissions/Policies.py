@@ -1,117 +1,161 @@
-from flask import request, make_response
-from Erreurs.HttpErreurs import *
-from BDD.Database import Database
-from Utils.Dotenv import getenv
-from datetime import datetime
-from BDD.BDD_PSQL.PsqlParsers import jsonToPsqlQuery
+import datetime
+import flask
 import jwt
 
+import BDD.Model as Model
 
-def check_perm(db: Database, id: str, permissions: list):
-    query = {
-        "select": [
-            ["permissions", "key"]
-        ],
-        "where": [
-            ["users", "id", id, "and"]
-        ],
-        "from": {
-            "tables": ["users", "permission_user", "permissions"],
+from Utils.Erreurs.HttpErreurs import *
 
-            "cond": [
-                [
-                    ["users", "id"],
-                    ["permission_user", "user_id"]
-                ],
-                [
-                    ["permission_user", "permission_id"],
-                    ["permissions", "id"]
-                ]
-            ]
-        }
-    }
+import Utils.Dotenv as Dotenv
 
-    permission_labels = db.query(query)
-    permission_labels = [valeur["label"] for valeur in permission_labels]
 
-    print(f"Query res : {permission_labels}")
+def check_perm(query_builder: Model.Model, user_id: str, *permissions_list: list[list[str]]) -> bool:
+    """
+    Fonction vérifiant quels droits possède un utilisateur donné et s'assure qu'il a tous les droits demandés
 
-    if "admin" in permission_labels:
+    :param query_builder: Objet Model
+    :param user_id: Identifiant de l'utilisateur à vérifier
+    :param permissions: Liste des labels des permissions à vérifier
+    :return:
+    """
+
+    role_permissions_key = [row.export() for row in query_builder.table("users").where("id", user_id).load("roles", None, "permissions")]
+    user_permissions_key = [row.export() for row in query_builder.table("users").where("id", user_id).load("permissions")]
+
+    if len(role_permissions_key) == 0:
+        return False
+
+    role_permissions_key = (role_permissions_key[0]).get("roles", [])
+
+    permissions_key = []
+
+    for role in role_permissions_key:
+        for permission in role.get("permissions", []):
+            permission_label = permission.get("key")
+
+            if permission_label not in permissions_key:
+                permissions_key.append(permission_label)
+
+    for user in user_permissions_key:
+        for permission in user.get("permissions", []):
+            permission_label = permission.get("key")
+
+            if permission_label not in permissions_key:
+                permissions_key.append(permission_label)
+
+    if "admin" in permissions_key:
         return True
 
-    for required_permission in permissions:
-        if required_permission not in permission_labels:
-            return False
+    for required_permission_list in permissions_list:
+        found = 0
 
-    return True
+        for required_permission in required_permission_list:
+            if required_permission in permissions_key:
+                found += 1
+
+        if found == len(required_permission_list):
+            return True
+
+    return False
 
 
-def check_token(req, db: Database):
+def check_token(req: flask.Request, query_builder: Model.Model) -> str or None:
+    """
+    Fonction vérifiant pour une requête donnée si un token est bien donné, et s'il est valide
+    :param req: Objet Request de flask
+    :param query_builder: Objet Model
+    :return:
+    """
     if "Authorization" not in req.headers:
         return None
 
+    # Les 7 premiers caractères sont 'Bearer '
     token = req.headers["Authorization"][7:]
 
     try:
-        decoded_token = jwt.decode(token, getenv("token_key"), algorithms=["HS256"])
+        decoded_token = jwt.decode(token, Dotenv.getenv("token_key"), algorithms=["HS256"])
     except:
         return None
 
-    query = {
-        "select": [
-            ["api_tokens", "token"]
-        ],
-        "from": {
-            "tables": ["api_tokens"]
-        }
-    }
-
-    query_result = db.query(query)
+    query_result = query_builder.table("api_tokens").where("token", token).execute()
 
     if len(query_result) == 0:
         return None
 
-    expires_at = query_result[0]
-    expires_at_datetime = datetime.strptime(expires_at + "00", "%Y-%m-%d %H:%M:%S.%f+0100")
+    # Dans le cas de token sans limite de vie, la valeur par défaut est 10 secondes dans le futur pour valider la
+    # Vérification sans soucis
+    expires_at_datetime = query_result[0].get("expires_at", datetime.datetime.now().astimezone() +
+                                              datetime.timedelta(seconds=10))
 
-    if expires_at_datetime < datetime.now():
+    if expires_at_datetime < datetime.datetime.now().astimezone():
         return None
 
     return decoded_token
 
 
-def middleware(policies: list):
+def middleware(*policies: list[str]):
+    """
+    Fonction renvoyant un décorateur de fonction, initialise le décorateur en fonction des permissions à vérifier
+    :param policies: Liste de labels de permissions
+    """
     def wrapper(fonction):
+        """
+        Décorateur prenant en paramètre une fonction (celle qu'elle décore) et renvoie une autre fonction à appeler en
+        Son lieu, nous permettant d'exécuter du code avant la fonction, notamment pour vérifier les permissions de
+        L'utilisateur, ici.
+        :param fonction: Fonction à décorer
+        """
         def inner(*args, **kwargs):
-            if "Authorization" not in request.headers:
-                return make_response(non_authorise, 401, non_authorise)
+            """
+            Fonction dont le comportement remplace celle d'une autre
+            Prends en arguments les paramètres de la fonction, et vérifie en fonction de 'policies' les permissions de
+            L'utilisateur ayant fait la requête.
+            Lève une exception en cas de paramètres Request ou Database manquant, et une erreur HTTP sinon
+            """
+            if "Authorization" not in flask.request.headers:
+                return flask.make_response(non_authorise, 401, non_authorise)
 
-            db: Database = kwargs["database"]
+            query_builder: Model.Model = kwargs.get("query_builder")
 
-            if db is None:
+            if query_builder is None:
                 raise KeyError("Fonction nécessitant une connection à la BDD sans pouvoir.")
 
-            decoded_token = check_token(request, db)
+            decoded_token = check_token(flask.request, query_builder)
 
             if decoded_token is None:
-                return make_response(token_invalide, 400, token_invalide)
+                return flask.make_response(token_invalide, 400, token_invalide)
 
-            print(decoded_token)
-
-            perm = check_perm(db, decoded_token["id"], policies)
+            perm = check_perm(query_builder, decoded_token["id"], policies)
 
             if not perm:
-                return make_response(non_authorise, 403, non_authorise)
+                return flask.make_response(non_authorise, 403, non_authorise)
 
+            # On appelle la fonction initiale que si l'utilisateur a les permissions suffisantes
             return fonction(*args, **kwargs)
 
+        # En raison du remplacement de la fonction par une autre, les méta-données sont perdues et ne peuvent être
+        # Transféré comme le nom de la fonction, nous insérons donc un dictionnaire contenant les informations
+        # Importantes au bon fonctionnement
         inner.__name__ = fonction.__name__
 
-        inner.info_fonction = {
-            "co_argcount": getattr(getattr(fonction, "__code__"), "co_argcount"),
-            "co_varnames": getattr(getattr(fonction, "__code__"), "co_varnames"),
-            "__module__": getattr(fonction, "__module__")
-        }
+        if hasattr(fonction, "info_fonction"):
+            inner.info_fonction = fonction.info_fonction
+            inner.info_fonction["co_argcount"] = getattr(getattr(fonction, "__code__"), "co_argcount")
+            inner.info_fonction["co_varnames"] = getattr(getattr(fonction, "__code__"), "co_varnames")
+            inner.info_fonction["__module__"] = getattr(fonction, "__module__")
+
+        else:
+            inner.info_fonction = {
+                "co_argcount": getattr(getattr(fonction, "__code__"), "co_argcount"),
+                "co_varnames": getattr(getattr(fonction, "__code__"), "co_varnames"),
+                "__module__": getattr(fonction, "__module__")
+            }
+
+        if hasattr(fonction, "append_url"):
+            inner.append_url = fonction.append_url
+
+        elif hasattr(fonction, "url"):
+            inner.url = fonction.url
 
         return inner
 

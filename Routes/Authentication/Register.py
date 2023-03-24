@@ -1,95 +1,54 @@
-import jwt
-from Utils.Dotenv import getenv
-from BDD.Database import Database
-from flask import Request, make_response
-from Erreurs.HttpErreurs import requete_malforme, creation_impossible
-import uuid
-import hashlib
-from Utils.Route import route
 import datetime
-from Permissions.Policies import middleware
+import flask
+
+import BDD.Model as Model
+
+import Utils.Erreurs.HttpErreurs as HttpErreurs
+
+import Utils.Handlers.TokenHandler as TokenHandler
+import Utils.Handlers.UserHandler as UserHandler
+
+import Utils.Route as Route
+
+import Utils.Types as Types
+
+# from Policies.Policies import middleware
 
 
 # @middleware(["post:user"])
-@route(method="post")
-def register(database: Database, request: Request):
-    data = request.get_json()
+@Route.route(method="POST")
+def register(query_builder: Model.Model, request: flask.Request) -> Types.func_resp:
+    """
+    Gère la route .../authentification/register - Méthode POST
 
-    firstname = data.get("firstname", None)
-    lastname = data.get("lastname", None)
-    email = data.get("email", None)
-    password = data.get("password", None)
+    Permet aux utilisateurs de créer un compte
 
-    if firstname is None or lastname is None or email is None or password is None:
-        return make_response(requete_malforme, 400, requete_malforme)
+    :param query_builder: Objet Model
+    :param request: Objet Request de flask
+    """
 
-    check_user_query = {
-        "where": [
-            ["users", "email", email, "and"]
-        ],
-        "from": {
-            "tables": ["users"]
-        }
-    }
+    data: dict[any] = request.get_json()
 
-    if len(database.query(check_user_query)) != 0:
-        return make_response(creation_impossible, 409, creation_impossible)
+    firstname: str = data.get("firstname")
+    lastname: str = data.get("lastname")
+    email: str = data.get("email")
+    password: str = data.get("password")
 
-    conflict = True
-    user_uuid = None
+    if None in [firstname, lastname, email, password]:
+        return flask.make_response(HttpErreurs.requete_malforme, 400, HttpErreurs.requete_malforme)
 
-    while conflict:
-        user_uuid = str(uuid.uuid4())
+    # Une inscription manuelle, sur cette route se fait forcément avec email
+    if len(query_builder.table("users").where("email", email).execute()) != 0:
+        return flask.make_response(HttpErreurs.creation_impossible, 409, HttpErreurs.creation_impossible)
 
-        check_uuid_query = {
-            "where": [
-                ["users", "id", user_uuid, "and"]
-            ],
-            "from": {
-                "tables": ["users"]
-            }
-        }
+    user_uuid = UserHandler.addUser(query_builder, password, email, None, firstname, lastname)
 
-        if len(database.query(check_uuid_query)) == 0:
-            conflict = False
+    token: str = TokenHandler.createToken(user_uuid)
 
-    hashed_password = hashlib.sha256(password.encode()).hexdigest()
-    del password
+    TokenHandler.addToken(query_builder, token, user_uuid)
 
-    creation_utilisateur = {
-        "table": "users",
-        "action": "insert",
-        "valeurs": [
-            ["id", user_uuid],
-            ["email", email],
-            ["firstname", firstname],
-            ["lastname", lastname],
-            ["password", hashed_password],
-            ["created_at", str(datetime.datetime.now().astimezone())],
-            ["updated_at", str(datetime.datetime.now().astimezone())]
-        ]
-    }
-
-    database.execute(creation_utilisateur)
-    database.commit()
-
-    token = jwt.encode({'id': user_uuid}, getenv("token_key"), algorithm="HS256")
-
-    insert = {
-        "table": "api_tokens",
-        "action": "insert",
-        "valeurs": [
-            ["token", token],
-            ["user_id", user_uuid],
-            ["expires_at", str((datetime.datetime.now() + datetime.timedelta(hours=24)).astimezone())],
-            ["created_at", str(datetime.datetime.now().astimezone())]
-        ]
-    }
-
-    database.execute(insert)
-    print(database.commit())
-
-    return {'token': token, 'user': {
+    # Moche mais permet de renvoyer les bonnes données
+    return_value = {'token':  "Bearer " + token, 'user': {
         'id': user_uuid,
         'email': email,
         'firstname': firstname,
@@ -98,3 +57,5 @@ def register(database: Database, request: Request):
         'updated_at': str(datetime.datetime.now().astimezone())
     }
             }
+
+    return return_value

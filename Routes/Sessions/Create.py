@@ -12,6 +12,8 @@ import Utils.Handlers.SessionHandler as SessionHandler
 
 import Utils.Route as Route
 
+import json
+
 
 @Policies.middleware(["store:session"])
 @Route.route(method="POST")
@@ -53,10 +55,14 @@ def createSession(query_builder: Model.Model, request: flask.Request, sio: flask
     res = query_builder.table("sessions").where("id", session_id).load("sequence", None, "questions", "reponses")
 
     res = res[0]
-    res = res.export()
+    res = res.export(True)
 
     res["status"] = "wait"
     res["users"] = []
+    
+    for question in res["sequence"]["questions"]:
+        question["enonce"] = json.loads(question["enonce"])
 
+    print("!! : ", json.dumps(res))
 
     return res

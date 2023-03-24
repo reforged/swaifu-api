@@ -93,9 +93,13 @@ class PsqlDatabase(Database.Database):
         self.lock.acquire()
         try:
             res = self.sql_cursor.execute(query, sql_request)
+        except Exception as e:
+            raise e
         finally:
             self.lock.release()
-            return res or []
+            if res is None:
+                return []
+            return res
 
     def commit(self):
         return self.sql_connection.commit()

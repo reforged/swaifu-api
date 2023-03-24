@@ -5,6 +5,8 @@ from BDD.Decorator import decorator
 
 @decorator
 class Su(Pivot):
+    table_name: str = "su"
+
     id: str
     session_id: str
     user_id: str

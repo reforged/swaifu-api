@@ -10,7 +10,10 @@ def route(method: str = "GET", url: str = None):
         """
         Fonction modifiant les attributs d'une fonction pour stocker la volonté d'url et de méthode d'accès.
         """
-        fonction.method = method.upper()
+        if hasattr(fonction, "info_fonction"):
+            fonction.info_fonction["method"] = method.upper()
+        else:
+            fonction.info_fonction = {"method": method.upper()}
 
         if url is not None:
             if url[0] != '/':

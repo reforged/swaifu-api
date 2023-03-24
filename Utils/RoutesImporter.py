@@ -31,7 +31,7 @@ def add_attributes(dict_arguments: dict[str, str]):
         def inner(*args, **kwargs):
             return fonction(*args, **kwargs, **arguments_demandes)
 
-        inner.__name__ = f"{fonction.__name__}"
+        inner.__name__ = fonction.__name__
 
         return inner
 
@@ -128,7 +128,7 @@ def import_route(caller_filename: str, rel_path_to_dir: str, route: str, app: fl
             # On récupère le nombre d'arguments de la fonction, et si > 0
             nb_arguments = retrieveAttr(fonction, "co_argcount") or getattr(getattr(fonction, "__code__"), "co_argcount")
 
-            print(f"URL FINALE DE {fonction.__name__} est {url} en utilisant méthodes {methods}")
+            print(f"URL FINALE DE {fonction.__name__} est {url} en utilisant méthodes {retrieveAttr(fonction, 'method', 'GET')}")
 
             # On les regarde pour éventuellement charger des paramètres nommés, tels que query_builder ou request
             if nb_arguments > 0:

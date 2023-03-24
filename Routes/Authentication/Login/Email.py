@@ -10,7 +10,7 @@ import Utils.Route as Route
 import Utils.Types as Types
 
 
-@Route.route("POST", "/authentication/login")
+@Route.route("POST")
 def email_login(query_builder: Model.Model, request: flask.Request):
     """
     Gère la route .../authentification/login/email - Méthode POST
@@ -37,12 +37,21 @@ def email_login(query_builder: Model.Model, request: flask.Request):
     # Petite prudence probablement inutile vu le fonctionnement de python
     del password
 
-    query_result: list[dict[str, str]] = query_builder.table('users').where("email", email).execute()
+    query_result: list = query_builder.table('users').where("email", email).load("roles")
 
     if len(query_result) == 0:
-        query_result = [{"password": ""}]
+        return flask.make_response("Nom d`utilisateur ou Mot de Passe incorrect",
+                                   401,
+                                   {'Authentication': '"Authentication requise"'}
+                                   )
 
     query_result: dict[str, str] = query_result[0]
+
+    query_result.load("permissions")
+
+    [row.load("permissions") for row in query_result.roles]
+
+    query_result = query_result.export()
 
     if hashed_password != query_result["password"]:
         return flask.make_response("Nom d`utilisateur ou Mot de Passe incorrect",

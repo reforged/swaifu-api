@@ -92,6 +92,12 @@ def questions_create(query_builder: Model.Model, request: flask.Request) -> Type
     # Commit à la toute fin en cas d'erreurs
     query_builder.commit()
 
-    data["user"] = query_builder.table("users").where('id', data["user_id"]).execute()[0]
+    data = query_builder.table("questions").where("id", question_id).load("etiquettes", None)[0]
+    data.load("reponses")
+    data = data.export()
+
+    res = query_builder.table("users").where("id", data["user_id"]).execute()[0]
+    del res["password"]
+    data["user"] = res
 
     return data

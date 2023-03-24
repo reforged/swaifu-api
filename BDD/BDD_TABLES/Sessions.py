@@ -13,10 +13,10 @@ class Sessions(Table):
     id: str
     sequence_id: str
     code: str
-    participants: str
 
     created_at: datetime.datetime.timestamp
 
     users: ManyToMany("users", Su)
-    sequences: HasOne("sequences", "sequence_id")
+    sequence: HasOne("sequences", "sequence_id")
     permissions: HasMany("permissions", "session_id")
+    reponses: HasMany("reponse_user", "session_id")

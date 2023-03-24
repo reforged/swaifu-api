@@ -48,7 +48,7 @@ class Table:
 
         return returnStr
 
-    def export(self):
+    def export(self, convert: bool = False):
         """
         Exporte la classe actuelle sous forme de dictionnaire, pour une utilisation éventuelle ou pour le sérialiser
         """
@@ -61,12 +61,18 @@ class Table:
                 if issubclass(type(self.__annotations__[key]), Link):
                     # S'il s'agit d'une déclaration d'une relation, alors on appelle récursivement la méthode
                     if type(self.__dict__[key]) == list:
-                        return_values[key] = [row.export() for row in self.__dict__[key]]
+                        return_values[key] = [row.export(convert) for row in self.__dict__[key]]
                     else:
-                        return_values[key] = self.__dict__[key].export()
+                        return_values[key] = self.__dict__[key].export(convert)
                 else:
                     # Si c'est une valeur, tel que str, alors on ajoute tel que
-                    return_values[key] = self.__dict__[key]
+                    if convert:
+                        if type(self.__dict__[key]) not in [str, int, float, bool]:
+                            return_values[key] = str(self.__dict__[key])
+                        else:
+                            return_values[key] = self.__dict__[key]
+                    else:
+                        return_values[key] = self.__dict__[key]
 
         return return_values
 

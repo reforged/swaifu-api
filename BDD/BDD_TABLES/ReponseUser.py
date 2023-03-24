@@ -17,4 +17,4 @@ class ReponseUser(Table):
 
     users: HasOne("users", "user_id")
     sessions: HasOne("sessions", "session_id")
-    questions: HasOne("questions", "question_id")
+    question: HasOne("questions", "question_id")

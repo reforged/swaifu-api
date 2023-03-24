@@ -1,3 +1,5 @@
+import threading
+
 import psycopg2
 import psycopg2.extras
 
@@ -26,6 +28,8 @@ class PsqlDatabase(Database.Database):
         password = Dotenv.getenv("DB_PASSWORD")
         port = Dotenv.getenv("DB_PORT")
 
+        self.lock = threading.Lock()
+
         if None in [database, url, user, password, port]:
             raise EnvironmentError("Paramètre manquants dans .env")
 
@@ -49,14 +53,25 @@ class PsqlDatabase(Database.Database):
         :param request:
         :return:
         """
-        query, sql_request = PsqlParsers.jsonToPsqlQuery(request)
 
-        self.sql_cursor.execute(query, sql_request)
-        self.sql_connection.commit()
+        self.lock.acquire()
 
-        query_result = self.sql_cursor.fetchall()
+        try:
+            query, sql_request = PsqlParsers.jsonToPsqlQuery(request)
 
-        return [{column_name: row[column_name] for column_name in row} for row in query_result]
+            self.sql_cursor.execute(query, sql_request)
+            self.sql_connection.commit()
+
+            query_result = self.sql_cursor.fetchall()
+
+            res = [{column_name: row[column_name] for column_name in row} for row in query_result]
+        except Exception as e:
+            print(e.__dict__)
+            raise e
+
+        finally:
+            self.lock.release()
+            return res
 
     def execute(self, request) -> list:
         """
@@ -75,8 +90,12 @@ class PsqlDatabase(Database.Database):
             self.rollback()
             return None
         """
-
-        return self.sql_cursor.execute(query, sql_request)
+        self.lock.acquire()
+        try:
+            res = self.sql_cursor.execute(query, sql_request)
+        finally:
+            self.lock.release()
+            return res or []
 
     def commit(self):
         return self.sql_connection.commit()

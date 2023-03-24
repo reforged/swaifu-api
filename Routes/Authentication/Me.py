@@ -34,6 +34,8 @@ def me(query_builder: Model.Model, request: flask.Request) -> Types.func_resp:
     res = res[0]
     # Sur lequel nousn chargeons les permissions que l'utilisateur à, en plus des rôles
     res.load("permissions")
+    [row.load("permissions") for row in res.roles]
+
     res = res.export()
 
     # Evitons d'envoyer au client le mot de passe

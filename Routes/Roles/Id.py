@@ -32,3 +32,22 @@ def getRoleById(role_id: str, query_builder: Model.Model):
     res.load("permissions")
 
     return res.export()
+
+
+@Policies.middleware(["destroy:role"])
+@Route.route(method="delete", url="<role_id>")
+def deleteRole(role_id: str, query_builder: Model.Model):
+    """
+    Gère la route .../roles/<role_id> - Méthode DELETE
+
+    Permet à un utilisateur de supprimer un rôle.
+
+    Nécessite d'être connecté.
+
+    :param role_id: Id de l'utilisateur concerné
+    :param query_builder: Objet Model
+    """
+
+    query_builder.table("roles", "delete").where("id", role_id).execute()
+
+    return {"message": "Supprimé avec succès"}

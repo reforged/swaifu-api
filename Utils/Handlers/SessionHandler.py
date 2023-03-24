@@ -1,14 +1,22 @@
-import BDD.Database as Database
+import uuid
+import datetime
+
+import BDD.Model as Model
 
 
-def getSessionsBySequenceId(database: Database.Database, sequence_id: str):
-    get_session_query = {
-        "where": {
-            ["session", "sequence_id", sequence_id]
-        },
-        "from": {
-            "tables": ["session"]
-        }
+def createSession(sequence_id: str, code: str, query_builder: Model.Model, commit: bool = True):
+    session_id = str(uuid.uuid4())
+
+    while len(query_builder.table("sessions").where("id", session_id).execute()) != 0:
+        session_id = str(uuid.uuid4())
+
+    params = {
+        "id": session_id,
+        "sequence_id": sequence_id,
+        "code": code,
+        "created_at": datetime.datetime.now().astimezone()
     }
 
-    return database.query(get_session_query)
+    query_builder.table("sessions", "insert").where(params).execute(commit=commit)
+
+    return session_id

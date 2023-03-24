@@ -27,3 +27,22 @@ def getPermissionById(permission_id: str, query_builder: Model.Model):
     res = res[0].load("users", query_builder.select("users.id"))
 
     return res.export()
+
+
+@Policies.middleware(["destroy:permission"])
+@Route.route(method="delete", url="<permission_id>")
+def deletePermission(permission_id: str, query_builder: Model.Model):
+    """
+    Gère la route .../permissions/<permission_id> - Méthode DELETE
+
+    Permet à un utilisateur de supprimer un compte utilisateur.
+
+    Nécessite d'être connecté.
+
+    :param permission_id: Id de la permission concerné
+    :param query_builder: Objet Model
+    """
+
+    query_builder.table("permissions", "delete").where("id", permission_id).execute()
+
+    return {"message": "Supprimé avec succès"}

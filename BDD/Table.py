@@ -1,5 +1,10 @@
-from BDD.Link import Link
-from BDD.ManyToMany import ManyToMany
+from Link import Link
+from ManyToMany import ManyToMany
+import datetime
+
+
+def getTime():
+    return datetime.datetime.now().astimezone()
 
 
 class Table:
@@ -15,6 +20,10 @@ class Table:
         servant à remplir le schéma d'information
         """
         self.model_class = model
+
+        for key in self.__annotations__:
+            if self.__dict__.get(key) is not None:
+                self.__dict__[key] = None
 
         if self.table_name is None:
             # Si le nom de la table est précisé il est pris, sinon il s'agit du nom de la classe en minuscule

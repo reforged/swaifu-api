@@ -1,4 +1,3 @@
-import datetime
 import jwt
 
 import BDD.Model as Model

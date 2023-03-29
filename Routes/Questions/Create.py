@@ -1,4 +1,6 @@
 import flask
+import json
+
 
 import BDD.Model as Model
 
@@ -96,8 +98,12 @@ def questions_create(query_builder: Model.Model, request: flask.Request) -> Type
     data.load("reponses")
     data = data.export()
 
+    data["enonce"] = json.loads(data["enonce"])
+
     res = query_builder.table("users").where("id", data["user_id"]).execute()[0]
     del res["password"]
     data["user"] = res
+
+    print("Data : ", json.dumps(data, default=str))
 
     return data

@@ -1,6 +1,4 @@
-import datetime
 import hashlib
-import uuid
 
 import BDD.Model as Model
 
@@ -22,28 +20,13 @@ def addUser(query_builder: Model.Model, password: str, email, numero, firstname:
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
     del password
 
-    conflict = True
-    user_uuid = None
-
-    # On recherche un uuid disponible
-    while conflict:
-        user_uuid = str(uuid.uuid4())
-
-        if len(query_builder.table("users").where("id", user_uuid).execute()) == 0:
-            conflict = False
-
     # Préparation des paramètres
     params = {
-        "id": user_uuid,
         "email": email,
         "numero": numero,
         "firstname": firstname,
         "lastname": lastname,
-        "password": hashed_password,
-        "created_at": str(datetime.datetime.now().astimezone()),
-        "updated_at": str(datetime.datetime.now().astimezone())
+        "password": hashed_password
     }
 
-    query_builder.table("users", "insert").where(params).execute(commit=commit)
-
-    return user_uuid
+    return query_builder.table("users", "insert").where(params).execute(commit=commit)

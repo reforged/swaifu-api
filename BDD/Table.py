@@ -1,10 +1,15 @@
-from Link import Link
-from ManyToMany import ManyToMany
 import datetime
+
+from BDD.Link import Link
+from BDD.ManyToMany import ManyToMany
 
 
 def getTime():
     return datetime.datetime.now().astimezone()
+
+
+def defaultExpire():
+    return (datetime.datetime.now() + datetime.timedelta(hours=24)).astimezone()
 
 
 class Table:
@@ -128,6 +133,7 @@ class Table:
                             join_on = link.join_on
 
                     # On revérifie la valeur souhaitée puisque join_from a pu changer
+
                     wanted_value = self.__dict__.get(join_from)
 
                     # Si aucun modèle est donnée, nous créons un de base prenant tout
@@ -146,4 +152,15 @@ class Table:
                     setattr(self, key, query_res)
 
         return self
+
+    def select(self, selected: list[str]):
+        args = {}
+
+        for requested in selected:
+            if requested in self.__annotations__ and self.__dict__.get(requested) is not None:
+                args[requested] = self.__dict__.get(requested)
+
+        print(f"Args : {args}")
+
+        return type(self)(self.model_class, **args)
 

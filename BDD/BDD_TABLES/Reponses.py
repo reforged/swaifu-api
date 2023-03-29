@@ -1,18 +1,19 @@
+import uuid
 import datetime
 from BDD.Decorator import decorator
 
-from BDD.Table import Table
+import BDD.Table as Table
 from BDD.HasOne import HasOne
 
 
 @decorator
-class Reponses(Table):
-    id: str
+class Reponses(Table.Table):
+    id: str = uuid.uuid4
     body: str
     valide: str
     question_id: str
 
-    created_at: datetime.datetime.timestamp
-    updated_at: datetime.datetime.timestamp
+    created_at: datetime.datetime.timestamp = Table.getTime
+    updated_at: datetime.datetime.timestamp = Table.getTime
 
     questions: HasOne("questions", "question_id")

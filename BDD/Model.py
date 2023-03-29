@@ -1,36 +1,46 @@
 from __future__ import annotations
-import copy
-import BDD.Table as Table
-import BDD.Database as Database
 
+import copy
+import importlib.util
+import os
 from typing import Union
 
-# TODO : Rendre automatique, comme l'import des routes
+import BDD.Database as Database
 
-import BDD.BDD_TABLES.ApiTokens
-import BDD.BDD_TABLES.Etiquettes
-import BDD.BDD_TABLES.Permissions
-import BDD.BDD_TABLES.Questions
-import BDD.BDD_TABLES.ReponseUser
-import BDD.BDD_TABLES.Reponses
-import BDD.BDD_TABLES.Roles
-import BDD.BDD_TABLES.Sequences
-import BDD.BDD_TABLES.Sessions
-import BDD.BDD_TABLES.Users
+import BDD.Table as Table
 
 
-tables = {
-    "api_tokens": BDD.BDD_TABLES.ApiTokens.ApiTokens,
-    "etiquettes": BDD.BDD_TABLES.Etiquettes.Etiquettes,
-    "permissions": BDD.BDD_TABLES.Permissions.Permissions,
-    "questions": BDD.BDD_TABLES.Questions.Questions,
-    "reponses": BDD.BDD_TABLES.Reponses.Reponses,
-    "reponse_user": BDD.BDD_TABLES.ReponseUser.ReponseUser,
-    "roles": BDD.BDD_TABLES.Roles.Roles,
-    "sequences": BDD.BDD_TABLES.Sequences.Sequences,
-    "sessions": BDD.BDD_TABLES.Sessions.Sessions,
-    "users": BDD.BDD_TABLES.Users.Users
-}
+tables = {}
+
+
+class A:
+    pass
+
+
+ignore_directory = ["__pycache__"]
+
+table_dir = os.path.join(os.path.dirname(__file__), "BDD_TABLES").replace("\\", "/")
+
+liste_fichiers = [file for file in os.listdir(table_dir) if os.path.isfile(os.path.join(table_dir, file))]
+
+for name_fichier in liste_fichiers:
+    spec = importlib.util.spec_from_file_location(f"BDD.BDD_TABLES.{name_fichier[:-3]}", f"{table_dir}/{name_fichier}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    liste_classes = [
+                    getattr(module, object) for object in dir(module)
+                    if (isinstance(getattr(module, object), type))
+                    and getattr(getattr(module, object), "__module__") == module.__name__
+                ]
+
+    liste_classes: list[Table.Table] = [classe for classe in liste_classes if issubclass(classe, Table.Table)]
+
+    # print(dir(module))
+    if liste_classes:
+        table_name = liste_classes[0].__dict__.get("table_name", liste_classes[0].__name__).lower()
+
+        tables[table_name] = liste_classes[0]
 
 
 class Model:
@@ -201,6 +211,54 @@ class Model:
 
         return new_model
 
+    def insert_default_values(self):
+        insert_into_table_name = self.query.get("table")
+
+        class_table = tables.get(insert_into_table_name)
+
+        for key in class_table.__annotations__:
+            exists = False
+
+            for value in self.query.get("valeurs", []):
+                if key == value[0]:
+                    exists = True
+
+            if not exists:
+                default_value_function = class_table.__dict__.get(key)
+
+                if isinstance(default_value_function, type(lambda: "")):
+                    value = str(default_value_function())
+                    self.query.get("valeurs").append([key, value])
+
+                    pk_name = class_table.__dict__.get("primary_key", "id")
+
+                    if key == pk_name:
+                        while len(self.new().table(insert_into_table_name)
+                                          .where(pk_name, value)
+                                          .execute()
+                                  ) > 0:
+                            value = str(default_value_function())
+                            self.query.get("valeurs")[-1][1] = value
+
+    def execute_action(self, commit: bool = True):
+        return_value = None
+
+        if self.action == "insert":
+            self.insert_default_values()
+            pk_name = tables.get(self.query.get("table")).primary_key
+
+            for value in self.query.get("valeurs"):
+                if value[0] == pk_name:
+                    return_value = value[1]
+
+            self.database.execute(self.query)
+        else:
+            return_value = self.database.execute(self.query)
+
+        if commit:
+            self.database.commit()
+        return return_value
+
     def execute(self, export: bool = True, commit: bool = True) -> Union[list[dict[str, str]], list[Table.Table]]:
         """
         Exécute la requette crée, choisi la bonne méthode si la requête modifiera ou non la BDD
@@ -210,11 +268,14 @@ class Model:
         """
 
         if self.action is not None:
-            return_value = self.database.execute(self.query)
+            if self.query.get("table").lower() in tables:
+                return self.execute_action(commit)
+            else:
+                return_value = self.database.execute(self.query)
 
-            if commit:
-                self.database.commit()
-            return return_value
+                if commit:
+                    self.database.commit()
+                return return_value
 
         parsed_query_response = self.database.query(self.query)
 

@@ -100,6 +100,7 @@ def start_session(data):
     found.lock = True
 
     session = query_builder.table("sessions").where("id", session_id).load("sequence", None, "questions", "reponses")[0]
+    session.load("users")
     session = session.export(True)
     session["status"] = "starting"
 
@@ -143,7 +144,7 @@ def new_question(data):
 
     found.questionSuivante()
 
-    session = query_builder.table("sessions").where("id", session_id).execute(export=False)[0]
+    session = query_builder.table("sessions").where("id", session_id).load("users")[0]
     session = session.export(True)
 
     question = found.questionActuelle()

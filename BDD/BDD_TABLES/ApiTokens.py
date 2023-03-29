@@ -1,13 +1,15 @@
 import datetime
+import uuid
+
 from BDD.Decorator import decorator
 
-from BDD.Table import Table
+import BDD.Table as Table
 
 from BDD.HasOne import HasOne
 
 
 @decorator
-class ApiTokens(Table):
+class ApiTokens(Table.Table):
     table_name: str = "api_tokens"
 
     id: str
@@ -15,7 +17,7 @@ class ApiTokens(Table):
     name: str
     token: str
 
-    created_at: datetime.datetime.timestamp
-    expires_at: datetime.datetime.timestamp
+    created_at: datetime.datetime.timestamp = Table.getTime
+    expires_at: datetime.datetime.timestamp = Table.defaultExpire
 
     users: HasOne("users", "user_id")

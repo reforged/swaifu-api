@@ -87,7 +87,11 @@ def check_token(req: flask.Request, query_builder: Model.Model) -> str or None:
     expires_at_datetime = query_result[0].get("expires_at", datetime.datetime.now().astimezone() +
                                               datetime.timedelta(seconds=10))
 
+    if isinstance(expires_at_datetime, str):
+        expires_at_datetime = datetime.datetime.fromisoformat(expires_at_datetime)
+
     if expires_at_datetime < datetime.datetime.now().astimezone():
+        query_builder.table("api_tokens", "delete").where("token", token).execute()
         return None
 
     return decoded_token

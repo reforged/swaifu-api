@@ -1,14 +1,15 @@
+import uuid
 from BDD.Decorator import decorator
 
-from BDD.Table import Table
+import BDD.Table as Table
 from BDD.HasOne import HasOne
 
 
 @decorator
-class ReponseUser(Table):
+class ReponseUser(Table.Table):
     table_name: str = "reponse_user"
 
-    id: str
+    id: str = uuid.uuid4
     body: str
     valide: str
     user_id: str

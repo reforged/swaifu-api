@@ -6,8 +6,6 @@ import Permissions.Policies as Policies
 
 import Utils.Erreurs.HttpErreurs as HttpErreurs
 
-import Utils.Handlers.RoleHandler as RoleHandler
-
 import Utils.Route as Route
 
 
@@ -39,7 +37,7 @@ def createRole(query_builder: Model.Model, request: flask.Request):
         if value is None:
             return flask.make_response(HttpErreurs.requete_malforme, 400, HttpErreurs.requete_malforme)
 
-    role_id = RoleHandler.createRole(query_builder, label, power)
+    role_id = query_builder.table("roles", "insert").where("label", label).where("power", power).execute()
 
     # On renvoie l'id de l'objet créé
     data["id"] = role_id

@@ -259,7 +259,7 @@ class Model:
             self.database.commit()
         return return_value
 
-    def execute(self, export: bool = True, commit: bool = True) -> Union[list[dict[str, str]], list[Table.Table]]:
+    def execute(self, export: bool = True, commit: bool = True) -> Union[list[dict[str, str]], list[Table.Table], str]:
         """
         Exécute la requette crée, choisi la bonne méthode si la requête modifiera ou non la BDD
 

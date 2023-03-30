@@ -6,8 +6,6 @@ import Permissions.Policies as Policies
 
 import Utils.Erreurs.HttpErreurs as HttpErreurs
 
-import Utils.Handlers.EtiquetteHandler as EtiquetteHandler
-
 import Utils.Route as Route
 
 import Utils.Types as Types
@@ -41,7 +39,7 @@ def etiquette_create(query_builder: Model.Model, request: flask.Request) -> Type
     if None in [label, color, user_id]:
         return flask.make_response(HttpErreurs.requete_malforme, 400, HttpErreurs.requete_malforme)
 
-    etiquette_id = EtiquetteHandler.createEtiquette(query_builder, label, color)
+    etiquette_id = query_builder.table("etiquettes", "insert").where("label", label).where("color", color).execute()
 
     # Puisque nous générons l'id, nous devons l'ajouter pour que le client l'ait
     data["id"] = etiquette_id

@@ -9,7 +9,7 @@ import Utils.Erreurs.HttpErreurs as HttpErreurs
 import Permissions.Policies as Policies
 
 import Utils.Handlers.QuestionHandler as QuestionHandler
-import Utils.Handlers.ReponseHandler as ReponseHandler
+
 import Utils.Route as Route
 import Utils.Types as Types
 
@@ -64,8 +64,8 @@ def questions_create(query_builder: Model.Model, request: flask.Request) -> Type
             return flask.make_response(HttpErreurs.requete_malforme, 400, HttpErreurs.requete_malforme)
 
         # Sinon on ajoute la réponse
-        reponse_id = ReponseHandler.createReponse(query_builder, body, bool(valide), question_id, False)
-        reponse["id"] = reponse_id
+        reponse["id"] = query_builder.table("reponses", "insert").where("body", body).where("valide", valide)\
+            .where("question_id", question_id).execute(commit=False)
 
     error_message = {"errors": []}
     i = 0

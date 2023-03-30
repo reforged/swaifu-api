@@ -1,19 +1,4 @@
-import BDD.Database as Database
 import BDD.Model as Model
-
-
-# TODO : Supprimer
-def getSessionSequenceByUuid(database: Database.Database, session_sequence_id: str) -> list[dict[str, str]]:
-    get_session_sequence = {
-        "where": [
-            ["session_sequence", "id", session_sequence_id]
-        ],
-        "from": {
-            "tables": ["session_sequence"]
-        }
-    }
-
-    return database.query(get_session_sequence)
 
 
 def addSequence(query_builder: Model.Model, label: str, question_list: list, commit: bool = True) -> str:

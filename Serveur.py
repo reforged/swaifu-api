@@ -15,15 +15,7 @@ import Sockets.SocketHandler as SocketHandler
 RoutesImporter.current_dir = os.path.dirname(__file__)
 
 App = flask.Flask(__name__)
-Sio = flask_socketio.SocketIO(App, cors_allowed_origins=["http://localhost:3000", "http://localhost:3333"])
-
-Sio.on("session_connexion")(SocketHandler.session_connexion)
-Sio.on("lock_answer")(SocketHandler.lock_answer)
-Sio.on("start_session")(SocketHandler.start_session)
-Sio.on("new_question")(SocketHandler.new_question)
-Sio.on("show_answer")(SocketHandler.show_answer)
-Sio.on("send_answer")(SocketHandler.send_answer)
-Sio.on("delete_session")(SocketHandler.delete_session)
+Sio = flask_socketio.SocketIO(App, cors_allowed_origins=["http://localhost:3000", "http://localhost:3333"], logger=True, engineio_logger=True)
 
 App.after_request(CorsHandler.after_request_func)
 
@@ -31,9 +23,11 @@ App.after_request(CorsHandler.after_request_func)
 Db = ConnectionHandler.initiate(Dotenv.getenv("DB_TYPE"))
 QueryBuilder = Model.Model(Db)
 
-
 SocketHandler.sio = Sio
 SocketHandler.query_builder = QueryBuilder
+
+SocketHandler.load_sessions(Sio, QueryBuilder)
+
 
 param = {
     "database": Db,

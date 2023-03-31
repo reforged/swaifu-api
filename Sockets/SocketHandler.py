@@ -1,15 +1,19 @@
-import Sockets.Session as Session
-import flask
-import os
 import importlib.util
+import os
+
 from Utils.AttributeAdder import add_attributes
+
+import Sockets.Session as Session
 
 liste_session: list[Session] = []
 
-req = flask.Request
-
 
 def load_sessions(Sio, query_builder):
+    """
+    Permet de charger tout les events des sockets située dans .../Sockets/Events
+    :param Sio: Object SocketIO
+    :param query_builder: Objet Model
+    """
     table_dir = os.path.join(os.path.dirname(__file__), "Events").replace("\\", "/")
 
     liste_fichiers = [file for file in os.listdir(table_dir) if os.path.isfile(os.path.join(table_dir, file))]

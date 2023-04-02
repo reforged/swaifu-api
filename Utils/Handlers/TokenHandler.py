@@ -1,4 +1,3 @@
-import datetime
 import jwt
 
 import BDD.Model as Model
@@ -27,12 +26,13 @@ def addToken(query_builder: Model.Model, token: str, user_id: str, commit: bool 
     :param commit: Si la fonction doit sauvegarder les changements
     """
 
+    if len(query_builder.table("api_tokens").where("token", token).execute()) != 0:
+        query_builder.table("api_tokens", "delete").where("token", token).execute()
+
     params = {
         "token": token,
         "user_id": user_id,
-        "name": "Bearer",
-        "expires_at": str((datetime.datetime.now() + datetime.timedelta(hours=24)).astimezone()),
-        "created_at": str(datetime.datetime.now().astimezone())
+        "name": "Bearer"
     }
 
     query_builder.table("api_tokens", "insert").where(params).execute(commit=commit)

@@ -8,7 +8,6 @@ import Permissions.Policies as Policies
 import Utils.Erreurs.HttpErreurs as HttpErreurs
 
 import Sockets.SocketHandler as SocketHandler
-import Utils.Handlers.SessionHandler as SessionHandler
 
 import Utils.Route as Route
 
@@ -48,7 +47,7 @@ def createSession(query_builder: Model.Model, request: flask.Request, sio: flask
 
     sock = SocketHandler.createSession(sequence_id, query_builder, sio)
 
-    session_id = SessionHandler.createSession(sequence_id, sock.code, query_builder)
+    session_id = query_builder.table("sessions", "insert").where("sequence_id", sequence_id).where("code", sock.code).execute()
 
     sock.session_id = session_id
 

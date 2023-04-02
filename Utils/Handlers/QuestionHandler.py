@@ -1,5 +1,3 @@
-import datetime
-import uuid
 import json
 
 import BDD.Model as Model
@@ -18,24 +16,13 @@ def createQuestion(query_builder: Model.Model, label: str, slug: str, enonce: st
     :param commit: Si la fonction doit sauvegarder les changements
     """
 
-    question_id: str = str(uuid.uuid4())
-
-    # On cherche un uuid disponible
-    while len(query_builder.table("questions").where("id", question_id).execute()) > 0:
-        question_id = str(uuid.uuid4())
-
     # On sérialise l'énoncé
     params = {
-        "id": question_id,
         "label": label,
         "slug": slug,
         "enonce": (json.dumps(enonce)).replace("'", '"'),
         "type": q_type,
-        "user_id": user_id,
-        "created_at": datetime.datetime.now().astimezone(),
-        "updated_at": datetime.datetime.now().astimezone()
+        "user_id": user_id
     }
 
-    query_builder.table("questions", "insert").where(params).execute(commit=commit)
-
-    return question_id
+    return query_builder.table("questions", "insert").where(params).execute(commit=commit)

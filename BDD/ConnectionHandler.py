@@ -1,4 +1,6 @@
 from BDD.Database import Database
+from BDD.BDD_CACHE.CacheDatabase import CacheDatabase
+import BDD.Model as Model
 
 from BDD.BDD_PSQL.PsqlDatabase import PsqlDatabase
 
@@ -17,4 +19,6 @@ def initiate(systeme: str) -> Database:
     if systeme.lower() not in handlers.keys():
         raise BDDNonPriseEnCharge
 
-    return handlers.get(systeme.lower())()
+    requested_db = handlers.get(systeme.lower())()
+
+    return CacheDatabase(requested_db, Model.tables)

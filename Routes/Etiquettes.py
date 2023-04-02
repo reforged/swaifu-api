@@ -13,4 +13,5 @@ def etiquettes(query_builder: Model.Model) -> list[dict]:
     :param query_builder: Objet Model
     """
 
-    return query_builder.table("etiquettes").execute()
+    res = query_builder.table("etiquettes").load("questions")
+    return [row.export() for row in res]

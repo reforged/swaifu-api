@@ -13,7 +13,7 @@ import Utils.RoutesImporter as RoutesImporter
 import Sockets.SocketHandler as SocketHandler
 
 App = flask.Flask(__name__)
-Sio = flask_socketio.SocketIO(App, cors_allowed_origins=["http://localhost:3000", "http://localhost:3333"], logger=True, engineio_logger=True)
+Sio = flask_socketio.SocketIO(App, cors_allowed_origins=["http://localhost:3000", "http://localhost:3333"]) # , logger=True, engineio_logger=True
 
 App.after_request(CorsHandler.after_request_func)
 

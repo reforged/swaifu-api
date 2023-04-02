@@ -1,32 +1,41 @@
+from Sockets.Session import Session
+from BDD.Model import Model
 import flask_socketio
-import Sockets.Session as Session
+
 import json
 
+def ShowAnswer(data: dict[str, any], query_builder: Model, liste_session: list[Session], sio: flask_socketio.SocketIO):
+    session_id = data.get("session", {}).get("id")
+    code_salle = data.get("session", {}).get("code")
 
-def show_answer(data, liste_session, query_builder):
-    print("SHOW ANSWERS")
-    print("Data session : ", data)
-    session_id = data.get("session").get("id")
+    for value in [session_id]:
+        if value is None:
+            return sio.emit("error", {"message": "Valeurs manquantes", "code": code_salle})
 
-    found: Session.Session = None
+    found = None
 
     for session in liste_session:
         if session.session_id == session_id:
             found = session
+            break
 
-    session = query_builder.table("sessions").where("id", session_id).load("reponses", None, "question")[0]
-    session = session.export()
+    if found is None:
+        return sio.emit("error", {"message": "Session non trouvée", "code": code_salle})
 
-    question = found.questionActuelle()
-    question["reponses"] = query_builder.table("reponses").where("question_id", question["id"]).execute()
+    info_wanted = ["users.id", "users.email", "users.numero", "users.firstname", "users.lastname", "users.created_at",
+                   "users.updated_at"]
+    session = query_builder.table("sessions").select(*info_wanted).where("id", found.session_id).load("users")[0].export(convert=True)
 
-    session["question"] = question
+    session["question"] = found.questionActuelle()
 
-    send = {
+    to_send = {
         "session": session,
-        "reponses": question
+        "reponses": found.reponsesActuelle(),
+        "waiting": False,
+        "locked": True
     }
 
-    send = json.loads(json.dumps(send, default=str))
+    print(f"Showing answer : {json.dumps(to_send)}")
+    print("Received answers : ", found.reponsesCourantes())
 
-    flask_socketio.emit("show_answer", send, broadcast=True)
+    return sio.emit("ShowAnswer", to_send, broadcast=True)

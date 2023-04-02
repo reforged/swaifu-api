@@ -42,7 +42,7 @@ class Session:
 
         codesEnUtilisation[self.code] = self
 
-        self.liste_questions = query_builder.table("sequences").where("id", sequence_id).load("questions")[0]
+        self.liste_questions = query_builder.table("sequences").where("id", sequence_id).load("questions", None, "reponses")[0]
 
         print(f"Liste de questions : {self.liste_questions}")
 
@@ -56,30 +56,44 @@ class Session:
         self.reponse_actuelle = self.reponsesActuelle()
 
     def __del__(self):
+        # TODO: SAUVEGARDE EN BDD
         del codesEnUtilisation[self.code]
 
     def questionActuelle(self):
+        print("RETURNING : ", self.liste_questions[self.index_question_actuelle])
         return self.liste_questions[self.index_question_actuelle]
 
     def questionSuivante(self):
         self.index_question_actuelle += 1
         self.liste_de_reponse.append({})
 
+    def reponsesCourantes(self):
+        return self.liste_de_reponse[self.index_question_actuelle]
+
     def reponsesActuelle(self) -> list[dict]:
-        return self.query_builder.table("reponses").where("question_id", self.questionActuelle()["id"]).execute()
+        return self.questionActuelle()["reponses"]
 
     def addAnswers(self, reponses: list[dict[str, str]], user_id: str):
-        del self.liste_de_reponse[self.index_question_actuelle][user_id]
+        if user_id in self.liste_questions[self.index_question_actuelle]:
+            del self.liste_de_reponse[self.index_question_actuelle][user_id]
+
+        to_add = []
 
         for reponse in reponses:
-            body = reponse.get("body")
-
             data = {
-                "body": body,
-                "valide": True,
                 "user_id": user_id,
                 "session_id": self.session_id,
                 "question_id": self.questionActuelle()["id"]
             }
 
-            self.liste_de_reponse[self.index_question_actuelle][user_id] = data
+            if type(reponse) == str:
+                data["body"] = reponse
+                data["valide"] = (reponse == self.reponsesActuelle()[0]["body"])
+
+            else:
+                data["body"] = reponse.get("body")
+                data["valide"] = reponse.get("valide")
+
+            to_add.append(data)
+
+        self.liste_de_reponse[self.index_question_actuelle][user_id] = to_add

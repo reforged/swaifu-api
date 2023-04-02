@@ -2,12 +2,10 @@ from Sockets.Session import Session
 import flask_socketio
 
 
-def LockAnswer(data: dict[str, any], liste_session: list[Session], sio: flask_socketio.SocketIO):
+def StopSession(data: dict[str, any], liste_session: list[Session], sio: flask_socketio.SocketIO):
+    print("Session ended")
     session_id = data.get("session", {}).get("id")
     code_salle = data.get("session", {}).get("code")
-    lock = data.get("locked", True)
-
-    print("Lock answer - received data : ", data)
 
     for value in [session_id]:
         if value is None:
@@ -23,4 +21,6 @@ def LockAnswer(data: dict[str, any], liste_session: list[Session], sio: flask_so
     if found is None:
         return sio.emit("error", {"message": "Session non trouvée", "code": code_salle})
 
-    sio.emit("LockAnswer", {"session": data["session"], "locked": lock}, broadcast=True)
+    del found
+
+    sio.emit("StopSession", data.get("session"), broadcast=True)
